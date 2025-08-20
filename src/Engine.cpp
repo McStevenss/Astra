@@ -145,7 +145,7 @@ void Engine::Start()
         // PlayerShader.setMat4("model",player.model);
         PlayerShader.setMat4("projection",Projection);
         PlayerShader.setMat4("view",View);
-        player.Render(PlayerShader);
+        player.Render(PlayerShader, cam.yaw);
 
 
         glm::mat4 Model(1.0f);
@@ -283,7 +283,7 @@ void Engine::HandleInput(float dt)
 
     // --- Camera movement ---
     const Uint8* ks = SDL_GetKeyboardState(nullptr);
-    float speed = (ks[SDL_SCANCODE_LCTRL] ? 100.0f : 40.0f);
+    float speed = (ks[SDL_SCANCODE_LCTRL] ? 25.0f : 10.0f);
     glm::vec3 fwd = glm::normalize(glm::vec3(cosf(cam.pitch)*cosf(cam.yaw), 0.0f, cosf(cam.pitch)*sinf(cam.yaw)));
     glm::vec3 right = glm::normalize(glm::cross(fwd, glm::vec3(0,1,0)));
 

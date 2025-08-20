@@ -81,13 +81,14 @@ Player::Player(glm::vec3 position, glm::vec3 scale)
 
 }
 
-void Player::Render(Shader &shader)
+void Player::Render(Shader &shader, float yaw)
 {
     // shader.setMat4("model", model);
     model = glm::mat4(1.0f);
     glm::vec3 test = mPosition + glm::vec3(0.0f,1.0f,0.0f);
     model = glm::translate(model, test);   // move to current player position
     model = glm::scale(model, glm::vec3(1.0f)); // optional, if you want to scale
+    model = glm::rotate(model, -yaw, glm::vec3(0.0f, 1.0f, 0.0f));
     shader.setMat4("model",model);
     glBindVertexArray(VAO); 
     glDrawArrays(GL_TRIANGLES, 0, 36);

@@ -10,7 +10,7 @@ class Player
     public:
         Player(glm::vec3 position, glm::vec3 scale = glm::vec3(1.0f));
         Player(){mPosition = glm::vec3(1.0f);};
-        void Render(Shader &shader);
+        void Render(Shader &shader, float yaw);
         void Update();
         glm::mat4 model = glm::mat4(1.0f);
         glm::vec3 mPosition = glm::vec3(1.0f);
