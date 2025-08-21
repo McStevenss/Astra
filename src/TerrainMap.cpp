@@ -91,6 +91,17 @@ float TerrainMap::getHeightGlobal(float x, float z) {
     return -1.0f;
 }
 
+float TerrainMap::getTriHeightGlobal(float x, float z)
+{
+    for (auto& chunkPtr : chunks) {
+        if (chunkPtr->contains(x, z)) {
+            glm::vec3 local = glm::vec3(x, 0, z) - chunkPtr->position;
+            return chunkPtr->getTriHeightAt(local.x, local.z);
+        }
+    }
+    return -1.0f;
+}
+
 glm::vec2 TerrainMap::getGradient(float x, float z, float sampleDist) {
     // Central difference approximation
     float hL = getHeightGlobal(x - sampleDist, z);
@@ -124,13 +135,25 @@ glm::vec3 TerrainMap::getSlideDirection(float x, float z) {
 glm::vec3 TerrainMap::getNormalGlobal(float x, float z) {
     for (auto& chunkPtr : chunks) {
         if (chunkPtr->contains(x, z)) {
-            glm::vec3 local = glm::vec3(x, 0, z) - chunkPtr->position;
-            return chunkPtr->hm.normalAtInterpolated(local.x, local.z);
-            // if you don’t have interpolated version yet, bilinear interpolate
+            // glm::vec3 local = glm::vec3(x, 0, z) - chunkPtr->position;
+            // return chunkPtr->hm.normalAtInterpolated(local.x, local.z);
+            // return chunkPtr->hm.sampleNormal(local.x, local.z);
+            // return chunkPtr->getTriNormalAt(local.x,local.y);
+            return chunkPtr->getTriNormalAt(x,z);
         }
     }
-    return glm::vec3(0,1,0); // default flat
+    return glm::vec3(-1,-1,-1); // default flat
 }
+
+// glm::vec3 TerrainMap::getNormalGlobal(float x, float z) {
+//     for (auto& chunkPtr : chunks) {
+//         if (chunkPtr->contains(x, z)) {
+//             glm::vec3 local = glm::vec3(x, 0, z) - chunkPtr->position;
+//             return chunkPtr->getNormalAtQuad(local.x,local.z);
+//         }
+//     }
+//     return glm::vec3(0,1,0); // default flat
+// }
 
 glm::vec3 TerrainMap::getDownhillAccelFromNormal(const glm::vec3& normal, float gravityConstant) {
     glm::vec3 gravity = glm::vec3(0.0f, gravityConstant, 0.0f);

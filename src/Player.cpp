@@ -133,38 +133,44 @@ void Player::Render(Shader &shader, float yaw)
 
 void Player::Update(float deltaTime, TerrainMap& terrainMap)
 {
-    float terrainHeight = terrainMap.getHeightGlobal(mPosition.x, mPosition.z);
+    // float terrainHeight = terrainMap.getHeightGlobal(mPosition.x, mPosition.z);
+    float terrainHeight = terrainMap.getTriHeightGlobal(mPosition.x, mPosition.z);
     float terrainDiff   = mPosition.y - terrainHeight;
-    float slopeThreshold = 0.15f;
+    float slopeThreshold = 0.55f;
 
-    if (terrainDiff > slopeThreshold) {
-        // Free fall
-        mVelocity.y += gravityConstant * deltaTime;
-    }
-    else {
+    // if (terrainDiff > slopeThreshold) {
+    //     // Free fall
+    //     mVelocity.y += gravityConstant * deltaTime;
+    // }
+    // else {
         // Snap to terrain height
         mPosition.y = terrainHeight;
         mVelocity.y = 0.0f;
-
+        falling = false;
         // Check slope
         glm::vec3 normal = terrainMap.getNormalGlobal(mPosition.x, mPosition.z);
         float slopeAngle = glm::degrees(acos(glm::dot(normal, glm::vec3(0,1,0))));
 
-        float maxSlopeDeg = 45.0f;
+  
+        // std::cout << "Slope Angle:" <<slopeAngle << " TerrainDiff:" << terrainDiff << std::endl;
+        // printf("normal: (%.1f,%.1f,%.1f)", normal.x,normal.y,normal.z);
+
+        float maxSlopeDeg = 50.0f;
         if (slopeAngle > maxSlopeDeg) {
-            // Use projected gravity as downhill acceleration
             glm::vec3 accel = terrainMap.getDownhillAccelFromNormal(normal, gravityConstant);
             mVelocity += accel * deltaTime;
+            falling = true;
         }
         else {
             // Ground friction if slope is walkable
             mVelocity.x *= 0.8f;
             mVelocity.z *= 0.8f;
+            falling = false;
         }
 
         // Always correct y to terrain
-        mPosition.y = terrainMap.getHeightGlobal(mPosition.x, mPosition.z);
-    }
+        mPosition.y = terrainMap.getTriHeightGlobal(mPosition.x, mPosition.z);
+    // }
 
     // Apply velocity
     mPosition += mVelocity * deltaTime;

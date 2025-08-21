@@ -53,7 +53,6 @@ void TerrainChunk::buildMesh() {
     dirty = false;
 }
 
-
 void TerrainChunk::updateMeshIfDirty() {
     if(!dirty) return;
 
@@ -71,6 +70,32 @@ void TerrainChunk::updateMeshIfDirty() {
     glBufferSubData(GL_ARRAY_BUFFER, 0, verts.size()*sizeof(VertexPNUV), verts.data());
     dirty = false;
 }
+
+
+
+glm::vec3 TerrainChunk::getNormalAtQuad(float x, float z) {
+    float gx = x / hm.cell;
+    float gz = z / hm.cell;
+    int ix = (int)floorf(gx);
+    int iz = (int)floorf(gz);
+
+    ix = glm::clamp(ix, 0, hm.size-2);
+    iz = glm::clamp(iz, 0, hm.size-2);
+
+    float h00 = hm.at(ix, iz);
+    float h10 = hm.at(ix+1, iz);
+    float h01 = hm.at(ix, iz+1);
+
+    glm::vec3 v0(0      , h00, 0);
+    glm::vec3 v1(hm.cell, h10, 0);
+    glm::vec3 v2(0      , h01, hm.cell);
+
+    glm::vec3 normal = glm::normalize(glm::cross(v2 - v0, v1 - v0)); // flipped
+    if (normal.y < 0) normal = -normal; // ensure it points upwards
+
+    return normal;
+}
+
 
 void TerrainChunk::Render(bool wire){
     if (wire) {
@@ -192,6 +217,15 @@ void TerrainChunk::applyBrush(const Brush &b, const glm::vec3 &hit, bool lower)
 float TerrainChunk::getHeightAt(float x, float z) const {
     return hm.sampleHeight(x,z);
 }
+float TerrainChunk::getTriHeightAt(float x, float z) const {
+    return hm.sampleHeightTri(x,z);
+}
+
+glm::vec3 TerrainChunk::getTriNormalAt(float x, float z) const {
+    // return hm.sampleHeight(x,z);
+    return hm.sampleNormalTri(x,z);
+}
+
 
 
 bool TerrainChunk::rayHeightmapIntersect(const glm::vec3 &rayOrigin, const glm::vec3 &rayDistance, float maxDist, glm::vec3 &outHit)

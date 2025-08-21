@@ -16,6 +16,7 @@ class Player
         glm::vec3 mPosition = glm::vec3(1.0f);
         glm::vec3 mVelocity = glm::vec3(0.0f);
         bool onGround = true;
+        bool falling = false;
         int jumpVelocity = 5;
     private:
         float gravityConstant =-19.81f;

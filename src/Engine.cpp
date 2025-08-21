@@ -295,12 +295,15 @@ void Engine::HandleInput(float dt)
     glm::vec3 right = glm::normalize(glm::cross(fwd, glm::vec3(0,1,0)));
 
 
-    if (ks[SDL_SCANCODE_W]) player.mPosition -= fwd * speed * dt;
-    if (ks[SDL_SCANCODE_S]) player.mPosition += fwd * speed * dt;
-    if (ks[SDL_SCANCODE_A]) player.mPosition += right * speed * dt;
-    if (ks[SDL_SCANCODE_D]) player.mPosition -= right * speed * dt;
-    if (ks[SDL_SCANCODE_Q]) player.mPosition.y -= speed * dt;
-    if (ks[SDL_SCANCODE_E]) player.mPosition.y += speed * dt;
+    if (!player.falling)
+    {
+        if (ks[SDL_SCANCODE_W]) player.mPosition -= fwd * speed * dt;
+        if (ks[SDL_SCANCODE_S]) player.mPosition += fwd * speed * dt;
+        if (ks[SDL_SCANCODE_A]) player.mPosition += right * speed * dt;
+        if (ks[SDL_SCANCODE_D]) player.mPosition -= right * speed * dt;
+        if (ks[SDL_SCANCODE_Q]) player.mPosition.y -= speed * dt;
+        if (ks[SDL_SCANCODE_E]) player.mPosition.y += speed * dt;
+    }
 
 
     // Mouse look
