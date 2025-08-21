@@ -64,14 +64,6 @@ std::vector<std::unique_ptr<TerrainChunk>>& TerrainMap::GetChunks()
     return chunks;
 }
 
-// TerrainChunk* TerrainMap::getChunkAt(glm::vec3 worldPos) {
-//     int cx = int(worldPos.x / ((chunkSize-1) * cellSize));
-//     int cz = int(worldPos.z / ((chunkSize-1) * cellSize));
-//     if (cx < 0 || cz < 0 || cx >= chunksX || cz >= chunksZ) return nullptr;
-//     // return &chunks[cz * chunksX + cx];
-//     return chunks[cz * chunksX + cx].get();
-// }
-
 TerrainChunk* TerrainMap::getChunkAt(const glm::vec3& worldPos) {
     for (auto& chunkPtr : chunks) {
         if (chunkPtr->contains(worldPos.x, worldPos.z)) {
@@ -99,6 +91,55 @@ float TerrainMap::getHeightGlobal(float x, float z) {
     return -1.0f;
 }
 
+glm::vec2 TerrainMap::getGradient(float x, float z, float sampleDist) {
+    // Central difference approximation
+    float hL = getHeightGlobal(x - sampleDist, z);
+    float hR = getHeightGlobal(x + sampleDist, z);
+    float hD = getHeightGlobal(x, z - sampleDist);
+    float hU = getHeightGlobal(x, z + sampleDist);
+
+    float dx = (hR - hL) / (2.0f * sampleDist);
+    float dz = (hU - hD) / (2.0f * sampleDist);
+
+    return glm::vec2(dx, dz);
+}
+
+bool TerrainMap::isTooSteep(float x, float z, float maxSlopeDegrees) {
+    glm::vec2 grad = getGradient(x, z, cellSize);
+    glm::vec3 normal(-grad.x, 1.0f, -grad.y);
+    normal = glm::normalize(normal);
+
+    // Compare slope with allowed slope
+    float slopeAngle = glm::degrees(acos(glm::dot(normal, glm::vec3(0,1,0))));
+    return slopeAngle > maxSlopeDegrees;
+}
+
+glm::vec3 TerrainMap::getSlideDirection(float x, float z) {
+    glm::vec2 grad = getGradient(x, z, cellSize);
+    // downhill direction = negative gradient
+    glm::vec3 dir(-grad.x, 0.0f, -grad.y);
+    return glm::normalize(dir);
+}
+
+glm::vec3 TerrainMap::getNormalGlobal(float x, float z) {
+    for (auto& chunkPtr : chunks) {
+        if (chunkPtr->contains(x, z)) {
+            glm::vec3 local = glm::vec3(x, 0, z) - chunkPtr->position;
+            return chunkPtr->hm.normalAtInterpolated(local.x, local.z);
+            // if you don’t have interpolated version yet, bilinear interpolate
+        }
+    }
+    return glm::vec3(0,1,0); // default flat
+}
+
+glm::vec3 TerrainMap::getDownhillAccelFromNormal(const glm::vec3& normal, float gravityConstant) {
+    glm::vec3 gravity = glm::vec3(0.0f, gravityConstant, 0.0f);
+
+    // Project gravity onto terrain tangent plane
+    glm::vec3 tangent = gravity - glm::dot(gravity, normal) * normal;
+
+    return tangent; // already scaled by gravityConstant
+}
 
 void TerrainMap::save(const std::string& folderPath) {
     namespace fs = std::filesystem;
@@ -170,6 +211,10 @@ void TerrainMap::load(const std::string& folderPath) {
         updateDirtyChunks();
         std::cout << "TerrainMap loaded successfully from " << folderPath << std::endl;
     }
+}
+float TerrainMap::getCellSize()
+{
+    return cellSize;
 }
 // Optionally, update chunksX and chunksZ based on loaded data
 // Update chunksX/Z

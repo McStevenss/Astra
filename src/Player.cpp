@@ -94,3 +94,78 @@ void Player::Render(Shader &shader, float yaw)
     glDrawArrays(GL_TRIANGLES, 0, 36);
     glBindVertexArray(0);
 }
+
+// void Player::Update(float deltaTime, TerrainMap& terrainMap)
+// {
+//     float terrainHeight = terrainMap.getHeightGlobal(mPosition.x,mPosition.z);
+//     float terrainDiff = mPosition.y - terrainHeight;
+//     float slopeThreshold = 0.15f;
+//     float cellSize = terrainMap.getCellSize();
+
+//      // --- slope handling ---
+//     float maxSlopeDeg = 45.0f;
+//     if (terrainMap.isTooSteep(mPosition.x, mPosition.z, maxSlopeDeg)) {
+//         glm::vec3 slideDir = terrainMap.getSlideDirection(mPosition.x, mPosition.z);
+
+//         // scale slide speed based on steepness (more steep = faster slide)
+//         glm::vec2 grad = terrainMap.getGradient(mPosition.x, mPosition.z, cellSize);
+//         float slopeStrength = glm::length(grad); // ~tan(angle)
+//         // float slideSpeed = slopeStrength * 5.0f; // tweak multiplier
+//         float slideSpeed = 25; // tweak multiplier
+        
+//         // Apply slide force only along XZ
+//         mVelocity.x += slideDir.x * slideSpeed * deltaTime;
+//         mVelocity.z += slideDir.z * slideSpeed * deltaTime;
+//         if(terrainDiff<= slopeThreshold){
+//             mPosition.y = terrainHeight;
+//         }
+//     }
+//     else{
+//         // mVelocity.y = 0;
+//         // mVelocity.x = 0;
+//         // mVelocity.z = 0;
+//         mVelocity = glm::vec3(0.0f);
+//         mPosition.y = terrainHeight;
+//     }
+    
+//     mPosition += mVelocity * deltaTime;
+// }
+
+void Player::Update(float deltaTime, TerrainMap& terrainMap)
+{
+    float terrainHeight = terrainMap.getHeightGlobal(mPosition.x, mPosition.z);
+    float terrainDiff   = mPosition.y - terrainHeight;
+    float slopeThreshold = 0.15f;
+
+    if (terrainDiff > slopeThreshold) {
+        // Free fall
+        mVelocity.y += gravityConstant * deltaTime;
+    }
+    else {
+        // Snap to terrain height
+        mPosition.y = terrainHeight;
+        mVelocity.y = 0.0f;
+
+        // Check slope
+        glm::vec3 normal = terrainMap.getNormalGlobal(mPosition.x, mPosition.z);
+        float slopeAngle = glm::degrees(acos(glm::dot(normal, glm::vec3(0,1,0))));
+
+        float maxSlopeDeg = 45.0f;
+        if (slopeAngle > maxSlopeDeg) {
+            // Use projected gravity as downhill acceleration
+            glm::vec3 accel = terrainMap.getDownhillAccelFromNormal(normal, gravityConstant);
+            mVelocity += accel * deltaTime;
+        }
+        else {
+            // Ground friction if slope is walkable
+            mVelocity.x *= 0.8f;
+            mVelocity.z *= 0.8f;
+        }
+
+        // Always correct y to terrain
+        mPosition.y = terrainMap.getHeightGlobal(mPosition.x, mPosition.z);
+    }
+
+    // Apply velocity
+    mPosition += mVelocity * deltaTime;
+}

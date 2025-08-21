@@ -27,20 +27,24 @@ public:
     void applyBrush(const Brush& b, const glm::vec3& hit, bool lower=false);
     void updateDirtyChunks();
     float getHeightGlobal(float x, float z);
-
+    glm::vec2 getGradient(float x, float z, float sampleDist);
+    glm::vec3 getSlideDirection(float x, float z);
+    bool isTooSteep(float x, float z, float maxSlopeDegrees);
+    glm::vec3 getNormalGlobal(float x, float z);
+    glm::vec3 getDownhillAccelFromNormal(const glm::vec3& normal, float gravityConstant);
     void save(const std::string& folderPath);
     void load(const std::string& folderPath);
-
+    float getCellSize();
     // std::vector<TerrainChunk>& GetChunks();
     std::vector<std::unique_ptr<TerrainChunk>>& GetChunks();
     // TerrainChunk* getChunkAt(glm::vec3 worldPos);
     TerrainChunk* getChunkAt(const glm::vec3& worldPos);
-
-private:
-    int chunksX, chunksZ;      // number of chunks in each direction
-    int chunkSize;             // number of samples per chunk
-    float cellSize;
-    // std::vector<TerrainChunk> chunks;
-    std::vector<std::unique_ptr<TerrainChunk>> chunks;
+    
+    private:
+        int chunksX, chunksZ;      // number of chunks in each direction
+        int chunkSize;             // number of samples per chunk
+        float cellSize;
+        // std::vector<TerrainChunk> chunks;
+        std::vector<std::unique_ptr<TerrainChunk>> chunks;
 
 };

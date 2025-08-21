@@ -42,6 +42,7 @@ class Engine {
         void RescaleFramebuffer(float width, float height);
         void BindFramebuffer();
         void UnbindFramebuffer();
+        float GetDeltaTime();
         ImVec2 RenderGUI();
         Shader* heightMapShader;
         Shader* heightMapColorShader;

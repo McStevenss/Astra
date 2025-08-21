@@ -21,6 +21,9 @@ Engine::Engine()
     GenCircleGL();
 
     CreateFrameBuffer();
+
+
+    terrainMap->load("saved");
 }
 
 void Engine::Initialize()
@@ -56,6 +59,15 @@ void Engine::Initialize()
 
 }
 
+float Engine::GetDeltaTime()
+{
+    static uint64_t lastTime = SDL_GetTicks64();
+    uint64_t currentTime = SDL_GetTicks64();
+    float deltaTime = (currentTime - lastTime) / 1000.0f;
+    lastTime = currentTime;
+    return deltaTime;
+}
+
 void Engine::Start()
 {
     uint32_t prevTicks = SDL_GetTicks();
@@ -64,9 +76,7 @@ void Engine::Start()
 
     while(running)
     {
-        // --- Timing ---
-        uint32_t now = SDL_GetTicks();
-        float dt = (now - prevTicks) * 0.001f; prevTicks = now;
+        float dt = GetDeltaTime();
         
         HandleInput(dt);
 
@@ -132,15 +142,12 @@ void Engine::Start()
         }
         
      
-
-
-        // terrainChunk->updateMeshIfDirty();
         terrainMap->updateDirtyChunks();
         // --- Render ---
         glClearColor(0.52f,0.75f,0.95f,1);
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-
-        player.mPosition.y = terrainMap->getHeightGlobal(player.mPosition.x,player.mPosition.z);
+        player.Update(dt, *terrainMap);
+        // player.mPosition.y = terrainMap->getHeightGlobal(player.mPosition.x,player.mPosition.z);
         PlayerShader.use();
         // PlayerShader.setMat4("model",player.model);
         PlayerShader.setMat4("projection",Projection);

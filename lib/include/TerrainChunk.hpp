@@ -47,6 +47,37 @@ struct HeightMap {
                 float hU = inBounds(x,z+1)? at(x,z+1) : at(x,z);
                 return glm::normalize(glm::vec3(-(hR-hL)/(2*cell),1.0f,-(hU-hD)/(2*cell)));
             }
+
+            glm::vec3 normalAtInterpolated(float wx, float wz) const {
+                // Convert world space to grid space
+                float gx = wx / cell;
+                float gz = wz / cell;
+
+                int x0 = (int)floorf(gx);
+                int z0 = (int)floorf(gz);
+                int x1 = x0 + 1;
+                int z1 = z0 + 1;
+
+                if (!inBounds(x0, z0) || !inBounds(x1, z1))
+                    return glm::vec3(0,1,0);
+
+                // Fractional offset in cell
+                float tx = gx - x0;
+                float tz = gz - z0;
+
+                // Get grid normals at the 4 corners
+                glm::vec3 n00 = normalAt(x0, z0);
+                glm::vec3 n10 = normalAt(x1, z0);
+                glm::vec3 n01 = normalAt(x0, z1);
+                glm::vec3 n11 = normalAt(x1, z1);
+
+                // Bilinear interpolation
+                glm::vec3 n0 = glm::mix(n00, n10, tx);
+                glm::vec3 n1 = glm::mix(n01, n11, tx);
+                glm::vec3 n  = glm::mix(n0, n1, tz);
+
+                return glm::normalize(n);
+            }
 };
 
 //We remove any padding here that the compiler might add, so we can successfully load it straight from memory into RAM and it "autoparses" it to the correct HMapHeader!
