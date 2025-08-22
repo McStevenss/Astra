@@ -62,6 +62,7 @@ class Engine {
         std::vector<glm::vec3> ringVerts;
         
         bool running=true;
+        bool editMode=false;
         float aspect=ScreenWidth/ScreenHeight;
         bool wire=false;
         bool rmb=false; 

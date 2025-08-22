@@ -1,7 +1,9 @@
 #version 410 core
+in vec3 Normal;
 out vec4 FragColor;
 
 void main()
 {
-    FragColor = vec4(1.0); // set all 4 vector values to 1.0
+    // visualize normals as colors
+    FragColor = vec4(Normal * 0.5 + 0.5, 1.0);
 }

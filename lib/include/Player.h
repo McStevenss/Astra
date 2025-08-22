@@ -12,6 +12,7 @@ class Player
         Player(){mPosition = glm::vec3(1.0f);};
         void Render(Shader &shader, float yaw);
         void Update(float deltaTime, TerrainMap& terrainMap);
+        void HandleInput(float dt, const glm::vec3& fwd, const glm::vec3& right);
         glm::mat4 model = glm::mat4(1.0f);
         glm::vec3 mPosition = glm::vec3(1.0f);
         glm::vec3 mVelocity = glm::vec3(0.0f);

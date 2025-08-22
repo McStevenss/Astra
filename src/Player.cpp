@@ -6,51 +6,102 @@ Player::Player(glm::vec3 position, glm::vec3 scale)
     model = glm::translate(model, mPosition);
     model = glm::scale(model, scale); // a smaller cube
 
-      float temp_vertices[] = {
+    // float temp_vertices[] = {
+    //     -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f,
+    //     1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f,
+    //     1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f,
+    //     1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f,
+    //     -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f,
+    //     -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f,
+
+    //     -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+    //     1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+    //     1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+    //     1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+    //     -1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+    //     -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+
+    //     -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f,
+    //     -1.0f,  1.0f, -1.0f, -1.0f,  0.0f,  0.0f,
+    //     -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f,
+    //     -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f,
+    //     -1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f,
+    //     -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f,
+
+    //     1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f,
+    //     1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,
+    //     1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f,
+    //     1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,
+    //     1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f,
+    //     1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f,
+
+    //     -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f,
+    //     1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f,
+    //     1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f,
+    //     1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f,
+    //     -1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f,
+    //     -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f,
+
+    //     -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+    //     1.0f,  1.0f , 1.0f,  0.0f,  1.0f,  0.0f,
+    //     1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+    //     1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+    //     -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+    //     -1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+    // };
+
+    float cube_vertices[] = {
+        // -Z face
         -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f,
-        1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f,
         1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f,
         1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f,
-        -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f,
+        1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f,
         -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f,
+        -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f,
 
+        // +Z face
         -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+        1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
         1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
         1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-        1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-        -1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
         -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
+        -1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
 
-        -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f,
+        // -X face
+        -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f,
         -1.0f,  1.0f, -1.0f, -1.0f,  0.0f,  0.0f,
-        -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f,
-        -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f,
-        -1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f,
         -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f,
+        -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f,
+        -1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f,
+        -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f,
 
-        1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f,
+        // +X face
         1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,
+        1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f,
+        1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f,
+        1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f,
         1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f,
         1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,
-        1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f,
-        1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f,
 
+        // -Y face
         -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f,
-        1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f,
-        1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f,
-        1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f,
         -1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f,
+        1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f,
+        1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f,
+        1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f,
         -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f,
 
+        // +Y face
         -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-        1.0f,  1.0f , 1.0f,  0.0f,  1.0f,  0.0f,
         1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f,
         1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-        -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f,
+        1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f,
         -1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f,
+        -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f
     };
 
-    std::copy(std::begin(temp_vertices), std::end(temp_vertices), vertices); // Copy values into the array
+
+    std::copy(std::begin(cube_vertices), std::end(cube_vertices), vertices); // Copy values into the array
     
     unsigned int indices[] = {
     0, 1, 2, 2, 3, 0,
@@ -95,83 +146,55 @@ void Player::Render(Shader &shader, float yaw)
     glBindVertexArray(0);
 }
 
-// void Player::Update(float deltaTime, TerrainMap& terrainMap)
-// {
-//     float terrainHeight = terrainMap.getHeightGlobal(mPosition.x,mPosition.z);
-//     float terrainDiff = mPosition.y - terrainHeight;
-//     float slopeThreshold = 0.15f;
-//     float cellSize = terrainMap.getCellSize();
 
-//      // --- slope handling ---
-//     float maxSlopeDeg = 45.0f;
-//     if (terrainMap.isTooSteep(mPosition.x, mPosition.z, maxSlopeDeg)) {
-//         glm::vec3 slideDir = terrainMap.getSlideDirection(mPosition.x, mPosition.z);
+void Player::HandleInput(float dt, const glm::vec3& fwd, const glm::vec3& right)
+{
+    const Uint8* ks = SDL_GetKeyboardState(nullptr);
+    float targetSpeed = (ks[SDL_SCANCODE_LCTRL] ? 25.0f : 10.0f);
 
-//         // scale slide speed based on steepness (more steep = faster slide)
-//         glm::vec2 grad = terrainMap.getGradient(mPosition.x, mPosition.z, cellSize);
-//         float slopeStrength = glm::length(grad); // ~tan(angle)
-//         // float slideSpeed = slopeStrength * 5.0f; // tweak multiplier
-//         float slideSpeed = 25; // tweak multiplier
-        
-//         // Apply slide force only along XZ
-//         mVelocity.x += slideDir.x * slideSpeed * deltaTime;
-//         mVelocity.z += slideDir.z * slideSpeed * deltaTime;
-//         if(terrainDiff<= slopeThreshold){
-//             mPosition.y = terrainHeight;
-//         }
-//     }
-//     else{
-//         // mVelocity.y = 0;
-//         // mVelocity.x = 0;
-//         // mVelocity.z = 0;
-//         mVelocity = glm::vec3(0.0f);
-//         mPosition.y = terrainHeight;
-//     }
-    
-//     mPosition += mVelocity * deltaTime;
-// }
+    if (!falling)
+    {
+        glm::vec3 moveDir(0.0f);
+        if (ks[SDL_SCANCODE_W]) moveDir -= glm::vec3(fwd.x, 0.0f, fwd.z);
+        if (ks[SDL_SCANCODE_S]) moveDir += glm::vec3(fwd.x, 0.0f, fwd.z);
+        if (ks[SDL_SCANCODE_A]) moveDir += glm::vec3(right.x, 0.0f, right.z);
+        if (ks[SDL_SCANCODE_D]) moveDir -= glm::vec3(right.x, 0.0f, right.z);
+
+        if (glm::length(moveDir) > 0.0f) {
+            moveDir = glm::normalize(moveDir);
+            mVelocity = moveDir * targetSpeed;
+        }
+        else {
+            mVelocity.x *= 0.8f;
+            mVelocity.z *= 0.8f;
+        }
+    }
+}
 
 void Player::Update(float deltaTime, TerrainMap& terrainMap)
 {
-    // float terrainHeight = terrainMap.getHeightGlobal(mPosition.x, mPosition.z);
     float terrainHeight = terrainMap.getTriHeightGlobal(mPosition.x, mPosition.z);
     float terrainDiff   = mPosition.y - terrainHeight;
     float slopeThreshold = 0.55f;
 
-    // if (terrainDiff > slopeThreshold) {
-    //     // Free fall
-    //     mVelocity.y += gravityConstant * deltaTime;
-    // }
-    // else {
-        // Snap to terrain height
-        mPosition.y = terrainHeight;
+    falling = false;
+    // Check slope
+    glm::vec3 normal = terrainMap.getNormalGlobal(mPosition.x, mPosition.z);
+    float slopeAngle = glm::degrees(acos(glm::dot(normal, glm::vec3(0,1,0))));
+
+    float maxSlopeDeg = 50.0f;
+    if (slopeAngle > maxSlopeDeg) {
+        glm::vec3 accel = terrainMap.getDownhillAccelFromNormal(normal, gravityConstant);
+        mVelocity += accel * deltaTime;
+
+        // Project the velocity onto the tile/plane we're one so it doesnt explode or aggressively accumulate.
+        mVelocity -= glm::dot(mVelocity, normal) * normal;    
+        falling = true;
+    }
+    else{
         mVelocity.y = 0.0f;
-        falling = false;
-        // Check slope
-        glm::vec3 normal = terrainMap.getNormalGlobal(mPosition.x, mPosition.z);
-        float slopeAngle = glm::degrees(acos(glm::dot(normal, glm::vec3(0,1,0))));
-
-  
-        // std::cout << "Slope Angle:" <<slopeAngle << " TerrainDiff:" << terrainDiff << std::endl;
-        // printf("normal: (%.1f,%.1f,%.1f)", normal.x,normal.y,normal.z);
-
-        float maxSlopeDeg = 50.0f;
-        if (slopeAngle > maxSlopeDeg) {
-            glm::vec3 accel = terrainMap.getDownhillAccelFromNormal(normal, gravityConstant);
-            mVelocity += accel * deltaTime;
-            falling = true;
-        }
-        else {
-            // Ground friction if slope is walkable
-            mVelocity.x *= 0.8f;
-            mVelocity.z *= 0.8f;
-            falling = false;
-        }
-
-        // Always correct y to terrain
-        mPosition.y = terrainMap.getTriHeightGlobal(mPosition.x, mPosition.z);
-    // }
-
-    // Apply velocity
+    }
+   
+    mPosition.y = terrainMap.getTriHeightGlobal(mPosition.x, mPosition.z);
     mPosition += mVelocity * deltaTime;
 }

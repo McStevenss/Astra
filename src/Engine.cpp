@@ -78,7 +78,6 @@ void Engine::Start()
     {
         float dt = GetDeltaTime();
         
-        HandleInput(dt);
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame();
@@ -105,7 +104,7 @@ void Engine::Start()
         glm::vec3 hit;
         
 
-        if(insideImage){
+        if(insideImage && editMode){
 
             float xN = (2.0f * localX / EditorWindowWidth - 1.0f);
             float yN = (1.0f - 2.0f * localY / EditorWindowHeight);
@@ -114,7 +113,6 @@ void Engine::Start()
 
 
             glm::vec3 ro = glm::vec3(p0); glm::vec3 rd = glm::normalize(glm::vec3(p1-p0));
-            // hasHit = terrainChunk->rayHeightmapIntersect(ro, rd, 4000.0f, hit);
  
             hasHit = false;
             float closestT = 1e9f;
@@ -146,7 +144,10 @@ void Engine::Start()
         // --- Render ---
         glClearColor(0.52f,0.75f,0.95f,1);
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+        HandleInput(dt);
+        cam.Update(dt);
         player.Update(dt, *terrainMap);
+
         // player.mPosition.y = terrainMap->getHeightGlobal(player.mPosition.x,player.mPosition.z);
         PlayerShader.use();
         // PlayerShader.setMat4("model",player.model);
@@ -171,7 +172,7 @@ void Engine::Start()
         terrainMap->render(wire);
 
         // Draw brush ring at hit position
-        if(hasHit){
+        if(hasHit && editMode){
             std::vector<glm::vec3> ring; buildCircle(ring, brush.radius, 96);
             // update ring VBO with scaled circle at hit.y
             // for(auto& v : ring){ v.y = 0.0f; }
@@ -262,61 +263,45 @@ void Engine::HandleInput(float dt)
         if(e.type==SDL_WINDOWEVENT && e.window.event==SDL_WINDOWEVENT_SIZE_CHANGED){ cam.recalculateViewport(e); }
         if(e.type==SDL_MOUSEBUTTONDOWN){ if(e.button.button==SDL_BUTTON_RIGHT) rmb=true; if(e.button.button==SDL_BUTTON_LEFT) lmb=true; if(e.button.button==SDL_BUTTON_MIDDLE) mmb=true; }
         if(e.type==SDL_MOUSEBUTTONUP){ if(e.button.button==SDL_BUTTON_RIGHT) rmb=false; if(e.button.button==SDL_BUTTON_LEFT) lmb=false; if(e.button.button==SDL_BUTTON_MIDDLE) mmb=false; }
+        
         if(e.type==SDL_MOUSEWHEEL)
         {
-            if(e.wheel.y>0) brush.radius*=1.1f;
-            if(e.wheel.y<0) brush.radius/=1.1f; 
-            brush.radius = glm::clamp(brush.radius, 1.0f, 100.0f); 
-            if (e.wheel.y > 0) cam.distance = glm::max(2.0f, cam.distance - 1.0f);
-            if (e.wheel.y < 0) cam.distance = glm::min(30.0f, cam.distance + 1.0f);
+            if(editMode)
+            {
+                if(e.wheel.y>0) brush.radius*=1.1f;
+                if(e.wheel.y<0) brush.radius/=1.1f; 
+                brush.radius = glm::clamp(brush.radius, 1.0f, 100.0f); 
+            }
+            else
+            {
+                cam.Zoom(e);
+            }
         }
         if(e.type==SDL_KEYDOWN){
             if(e.key.keysym.sym==SDLK_ESCAPE) running=false;
-            if(e.key.keysym.sym==SDLK_1) {brush.mode = BrushMode::RaiseLower;};
-            if(e.key.keysym.sym==SDLK_2) {brush.mode = BrushMode::Flat;};
-            if(e.key.keysym.sym==SDLK_3) {brush.mode = BrushMode::Smooth;};
-            if(e.key.keysym.sym==SDLK_LCTRL) brush.Falloff=false;
+
+            if(editMode)
+            {
+                if(e.key.keysym.sym==SDLK_1) {brush.mode = BrushMode::RaiseLower;};
+                if(e.key.keysym.sym==SDLK_2) {brush.mode = BrushMode::Flat;};
+                if(e.key.keysym.sym==SDLK_3) {brush.mode = BrushMode::Smooth;};
+                if(e.key.keysym.sym==SDLK_LCTRL) brush.Falloff=false;
+                if(e.key.keysym.sym==SDLK_v) brush.strength = glm::max(0.1f, brush.strength*0.9f);
+                if(e.key.keysym.sym==SDLK_b) brush.strength = glm::min(10.0f, brush.strength*1.1f);
+            }
+
             if(e.key.keysym.sym==SDLK_LSHIFT || e.key.keysym.sym==SDLK_RSHIFT) shift=true;
             if(e.key.keysym.sym==SDLK_TAB) flatshade=!flatshade;
-            if(e.key.keysym.sym==SDLK_v) brush.strength = glm::max(0.1f, brush.strength*0.9f);
-            if(e.key.keysym.sym==SDLK_b) brush.strength = glm::min(10.0f, brush.strength*1.1f);
             if(e.key.keysym.sym==SDLK_f){ wire=!wire; }
             if(e.key.keysym.sym==SDLK_F9){ terrainMap->load("saved");} 
         }
         
         if(e.type==SDL_KEYUP){ if(e.key.keysym.sym==SDLK_LSHIFT || e.key.keysym.sym==SDLK_RSHIFT) shift=false; }
         if(e.type==SDL_KEYUP){ if(e.key.keysym.sym==SDLK_LCTRL) brush.Falloff=true; }
+        cam.HandleInput(e,mx,my);
     }
 
-    // --- Camera movement ---
-    const Uint8* ks = SDL_GetKeyboardState(nullptr);
-    float speed = (ks[SDL_SCANCODE_LCTRL] ? 25.0f : 10.0f);
-    glm::vec3 fwd = glm::normalize(glm::vec3(cosf(cam.pitch)*cosf(cam.yaw), 0.0f, cosf(cam.pitch)*sinf(cam.yaw)));
-    glm::vec3 right = glm::normalize(glm::cross(fwd, glm::vec3(0,1,0)));
-
-
-    if (!player.falling)
-    {
-        if (ks[SDL_SCANCODE_W]) player.mPosition -= fwd * speed * dt;
-        if (ks[SDL_SCANCODE_S]) player.mPosition += fwd * speed * dt;
-        if (ks[SDL_SCANCODE_A]) player.mPosition += right * speed * dt;
-        if (ks[SDL_SCANCODE_D]) player.mPosition -= right * speed * dt;
-        if (ks[SDL_SCANCODE_Q]) player.mPosition.y -= speed * dt;
-        if (ks[SDL_SCANCODE_E]) player.mPosition.y += speed * dt;
-    }
-
-
-    // Mouse look
-    static int lastmx=mx, lastmy=my; int dx = mx-lastmx, dy = my-lastmy; lastmx=mx; lastmy=my;
-
-    if (rmb) {
-        cam.yaw   += dx * 0.0035f;
-        cam.pitch += dy * 0.0035f;
-        cam.pitch = glm::clamp(cam.pitch, -1.5f, 1.5f);
-    }
-
-    // if(rmb){ cam.yaw += dx*0.0035f; cam.pitch -= dy*0.0035f; cam.pitch = glm::clamp(cam.pitch, -1.5f, 1.5f); }
-
+    player.HandleInput(dt,cam.forward,cam.right);
 }
 
 void Engine::CreateFrameBuffer()
@@ -413,6 +398,7 @@ ImVec2 Engine::RenderGUI()
     //--------------------------------------------------------------------
     ImGui::SeparatorText("Status");
     if(ImGui::Button("Toggle Wireframe")) { wire = !wire; }
+    ImGui::Checkbox("Edit Mode", &editMode);
     ImGui::Checkbox("Flat Shading", &flatshade);
     ImGui::Checkbox("Project Circle", &projectCircle);
     // ImGui::Text("Player Position: %f %f %f",&playerPos.x,&playerPos.y,&playerPos.z);
