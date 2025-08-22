@@ -8,6 +8,7 @@
 #include <iostream>
 #include <limits>
 #include <cmath>
+#include "CustomFileHeaders.h"
 
 struct VertexPNUV {
     glm::vec3 p, n;
@@ -88,49 +89,6 @@ struct HeightMap {
         return glm::normalize(n);
     }
 
-//    glm::vec3 sampleNormalTri(float wx, float wz) const {
-//         float gx = wx / cell;
-//         float gz = wz / cell;
-//         int x0 = (int)floorf(gx);
-//         int z0 = (int)floorf(gz);
-//         int x1 = x0 + 1;
-//         int z1 = z0 + 1;
-
-//         if(x0 < 0 || z0 < 0 || x1 >= size || z1 >= size) 
-//             return glm::vec3(0,1,0); // default up
-
-//         float tx = gx - x0;
-//         float tz = gz - z0;
-
-//         // Heights of quad corners
-//         float h00 = at(x0,z0);
-//         float h10 = at(x1,z0);
-//         float h01 = at(x0,z1);
-//         float h11 = at(x1,z1);
-
-//         glm::vec3 p00 = glm::vec3(x0 * cell, h00, z0 * cell);
-//         glm::vec3 p10 = glm::vec3(x1 * cell, h10, z0 * cell);
-//         glm::vec3 p01 = glm::vec3(x0 * cell, h01, z1 * cell);
-//         glm::vec3 p11 = glm::vec3(x1 * cell, h11, z1 * cell);
-
-//         glm::vec3 normal;
-
-//         if (tx + tz < 1.0f) {
-//             // Tri A: (p00, p10, p01)
-//             glm::vec3 e1 = p10 - p00;
-//             glm::vec3 e2 = p01 - p00;
-//             normal = glm::normalize(glm::cross(e1, e2));
-//         } else {
-//             // Tri B: (p10, p11, p01)
-//             glm::vec3 e1 = p11 - p10;
-//             glm::vec3 e2 = p01 - p10;
-//             normal = glm::normalize(glm::cross(e1, e2));
-//         }
-
-//         if (normal.y < 0.0f) normal = -normal;
-
-//         return normal;
-//     }
     glm::vec3 triangleNormalA(int x, int z) const {
         // vertices in grid space
         glm::vec3 p00(x*cell, at(x,z), z*cell);
@@ -214,15 +172,15 @@ struct HeightMap {
 };
 
 //We remove any padding here that the compiler might add, so we can successfully load it straight from memory into RAM and it "autoparses" it to the correct HMapHeader!
-#pragma pack(push,1)
-struct HMapHeader {
-    char magic[4];
-    uint32_t size;
-    float cell; 
-    uint32_t gridX;
-    uint32_t gridZ;
-};
-#pragma pack(pop)
+// #pragma pack(push,1)
+// struct HMapHeader {
+//     char magic[4];
+//     uint32_t size;
+//     float cell; 
+//     uint32_t gridX;
+//     uint32_t gridZ;
+// };
+// #pragma pack(pop)
 
 enum class BrushMode { RaiseLower, Smooth, Flat};
 struct Brush {

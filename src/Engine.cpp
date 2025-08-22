@@ -153,7 +153,7 @@ void Engine::Start()
         // PlayerShader.setMat4("model",player.model);
         PlayerShader.setMat4("projection",Projection);
         PlayerShader.setMat4("view",View);
-        player.Render(PlayerShader, cam.yaw);
+        player.Render(PlayerShader, cam.playerYaw);
 
 
         glm::mat4 Model(1.0f);
@@ -401,9 +401,9 @@ ImVec2 Engine::RenderGUI()
     ImGui::Checkbox("Edit Mode", &editMode);
     ImGui::Checkbox("Flat Shading", &flatshade);
     ImGui::Checkbox("Project Circle", &projectCircle);
-    // ImGui::Text("Player Position: %f %f %f",&playerPos.x,&playerPos.y,&playerPos.z);
     ImGui::SeparatorText("Camera");
     ImGui::Text("Player Position: (%.1f, %.1f, %.1f)", player.mPosition.x, player.mPosition.y, player.mPosition.z);
+    ImGui::Text("Player Velocity: (%.1f, %.1f, %.1f)", player.mVelocity.x, player.mVelocity.y, player.mVelocity.z);
     ImGui::Text("Yaw: %.1f", cam.yaw);
     ImGui::Text("Pitch: %.1f", cam.pitch);
     ImGui::Text("Distance: %.1f", cam.distance);

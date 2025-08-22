@@ -38,6 +38,7 @@ class Camera
         float distance = 5.0f;
         float minDistance = 2.0f;
         float maxDistance = 30.0f;
+        float playerYaw = yaw;
     private:
         bool lmb=false;
         bool rmb=false;
