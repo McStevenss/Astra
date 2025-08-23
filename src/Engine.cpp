@@ -97,7 +97,8 @@ void Engine::Start()
                             localY >= 0 && localY <= EditorWindowHeight);
         
         glm::mat4 View = cam.view(terrainMap);
-        glm::mat4 Projection = cam.proj(ScreenWidth/(float)ScreenHeight);
+        // glm::mat4 Projection = cam.proj(ScreenWidth/(float)ScreenHeight);
+        glm::mat4 Projection = cam.proj(EditorWindowWidth/(float)EditorWindowHeight);
         glm::mat4 VP = Projection*View; 
         glm::mat4 invVP = glm::inverse(VP);
         bool hasHit = false;
@@ -287,7 +288,10 @@ void Engine::HandleInput(float dt)
         
         if(e.type==SDL_KEYUP){ if(e.key.keysym.sym==SDLK_LSHIFT || e.key.keysym.sym==SDLK_RSHIFT) shift=false; }
         if(e.type==SDL_KEYUP){ if(e.key.keysym.sym==SDLK_LCTRL) brush.Falloff=true; }
-        cam.HandleInput(e,mx,my);
+
+        if(!editMode){
+            cam.HandleInput(e,mx,my);
+        }
     }
 
     player.HandleInput(dt,cam.forward,cam.right);
