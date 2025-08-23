@@ -34,7 +34,7 @@ void Engine::Initialize()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-    win = SDL_CreateWindow("Mini WoW Terrain Editor", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, ScreenWidth, ScreenHeight, SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
+    win = SDL_CreateWindow("Mini WoW Sandbox", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, ScreenWidth, ScreenHeight, SDL_WINDOW_OPENGL|SDL_WINDOW_RESIZABLE);
     glctx = SDL_GL_CreateContext(win);
 
     if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress)) {
@@ -147,10 +147,7 @@ void Engine::Start()
         HandleInput(dt);
         cam.Update(dt);
         player.Update(dt, *terrainMap);
-
-        // player.mPosition.y = terrainMap->getHeightGlobal(player.mPosition.x,player.mPosition.z);
         PlayerShader.use();
-        // PlayerShader.setMat4("model",player.model);
         PlayerShader.setMat4("projection",Projection);
         PlayerShader.setMat4("view",View);
         player.Render(PlayerShader, cam.playerYaw);
@@ -165,31 +162,23 @@ void Engine::Start()
         heightMapShader->setBool("uFlatShading", flatshade);
         heightMapShader->setMat4("uModel", Model);
         heightMapShader->setMat3("uNrmM", NrmM);
-        // heightMapShader->setVec3("uCamPos", cam.pos);
-        // heightMapShader->setVec3("uCamPos", cam.position());
         heightMapShader->setVec3("uCamPos", cam.positionWithCollision(terrainMap));
-        // terrainChunk->Render(wire);
         terrainMap->render(wire);
 
         // Draw brush ring at hit position
         if(hasHit && editMode){
             std::vector<glm::vec3> ring; buildCircle(ring, brush.radius, 96);
-            // update ring VBO with scaled circle at hit.y
-            // for(auto& v : ring){ v.y = 0.0f; }
             
             glm::mat4 Mring = glm::mat4(1.0f); // identity
 
             if(projectCircle){
 
                 for(auto& v : ring)
-                {
-                    
-                    // v.y += terrain->getHeightAt(v.x,v.z);
+                {                    
                     float worldX = v.x + hit.x;
                     float worldZ = v.z + hit.z;
                     TerrainChunk* tempChunk = terrainMap->getChunkAt(glm::vec3(worldX,0.0f,worldZ));
                     if (tempChunk) {
-                        // Compute local coordinates relative to the chunk
                         glm::vec3 local = glm::vec3(worldX, 0.0f, worldZ) - tempChunk->position;
                         v.y = tempChunk->getHeightAt(local.x, local.z) + tempChunk->circleOffset;
                     } else {
