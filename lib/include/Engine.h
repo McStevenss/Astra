@@ -22,6 +22,11 @@
 #include "imgui/imgui_impl_sdl2.h"
 #include "imgui/imgui_impl_opengl3.h"
 #include "Player.h"
+#include <unordered_map>
+#include "Animation.h"
+#include "Animator.h"
+#include "Model.hpp"
+#include "Mesh.hpp"
 
 class Engine {
 
@@ -57,10 +62,15 @@ class Engine {
 
         GLuint ringVBO=0;
         GLuint ringVAO=0;
-        glm::vec3 playerPos;
-
         std::vector<glm::vec3> ringVerts;
         
+                
+        glm::vec3 playerPos;
+        std::map<std::string, Animation> animations;
+
+        
+        glm::vec3 lightDir = glm::vec3(0.3,1.0,0.2);
+
         bool running=true;
         bool editMode=false;
         float aspect=ScreenWidth/ScreenHeight;

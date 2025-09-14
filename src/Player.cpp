@@ -1,151 +1,38 @@
 #include "Player.h"
 
-Player::Player(glm::vec3 position, glm::vec3 scale)
+Player::Player(glm::vec3 position, glm::vec3 scale, string const &modelPath)
 {
     mPosition = position;
-    model = glm::translate(model, mPosition);
-    model = glm::scale(model, scale); // a smaller cube
+    mModelMatrix = glm::translate(mModelMatrix, mPosition);
+    mModelMatrix = glm::scale(mModelMatrix, scale); // a smaller cube
+    meshModel = new Model(modelPath,false,true);
 
-    // float temp_vertices[] = {
-    //     -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f,
-    //     1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f,
-    //     1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f,
-    //     1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f,
-    //     -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f,
-    //     -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f,
-
-    //     -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-    //     1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-    //     1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-    //     1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-    //     -1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-    //     -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-
-    //     -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f,
-    //     -1.0f,  1.0f, -1.0f, -1.0f,  0.0f,  0.0f,
-    //     -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f,
-    //     -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f,
-    //     -1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f,
-    //     -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f,
-
-    //     1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f,
-    //     1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,
-    //     1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f,
-    //     1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,
-    //     1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f,
-    //     1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f,
-
-    //     -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f,
-    //     1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f,
-    //     1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f,
-    //     1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f,
-    //     -1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f,
-    //     -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f,
-
-    //     -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-    //     1.0f,  1.0f , 1.0f,  0.0f,  1.0f,  0.0f,
-    //     1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-    //     1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-    //     -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-    //     -1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-    // };
-
-    float cube_vertices[] = {
-        // -Z face
-        -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f,
-        1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f,
-        1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f,
-        1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f,
-        -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f,
-        -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f,
-
-        // +Z face
-        -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-        1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-        1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-        1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-        -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-        -1.0f,  1.0f,  1.0f,  0.0f,  0.0f,  1.0f,
-
-        // -X face
-        -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f,
-        -1.0f,  1.0f, -1.0f, -1.0f,  0.0f,  0.0f,
-        -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f,
-        -1.0f,  1.0f,  1.0f, -1.0f,  0.0f,  0.0f,
-        -1.0f, -1.0f,  1.0f, -1.0f,  0.0f,  0.0f,
-        -1.0f, -1.0f, -1.0f, -1.0f,  0.0f,  0.0f,
-
-        // +X face
-        1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,
-        1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f,
-        1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f,
-        1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f,
-        1.0f,  1.0f, -1.0f,  1.0f,  0.0f,  0.0f,
-        1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f,
-
-        // -Y face
-        -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f,
-        -1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f,
-        1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f,
-        1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f,
-        1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f,
-        -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f,
-
-        // +Y face
-        -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-        1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f,
-        1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-        1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-        -1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f,
-        -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f
-    };
-
-
-    std::copy(std::begin(cube_vertices), std::end(cube_vertices), vertices); // Copy values into the array
-    
-    unsigned int indices[] = {
-    0, 1, 2, 2, 3, 0,
-    4, 5, 6, 6, 7, 4,
-    8, 9, 10, 10, 11, 8,
-    12, 13, 14, 14, 15, 12,
-    16, 17, 18, 18, 19, 16,
-    20, 21, 22, 22, 23, 20
-    };
-
-
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    // glGenBuffers(1, &EBO);
-
-    glBindVertexArray(VAO);
-
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    //Position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    // normal attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
+    LoadAnimations();
+    animator = new Animator(&animations["idle"]);
 }
 
-void Player::Render(Shader &shader, float yaw)
+void Player::LoadAnimations()
 {
-    // shader.setMat4("model", model);
-    model = glm::mat4(1.0f);
-    glm::vec3 test = mPosition + glm::vec3(0.0f,1.0f,0.0f);
-    model = glm::translate(model, test);   // move to current player position
-    model = glm::scale(model, glm::vec3(1.0f)); // optional, if you want to scale
-    model = glm::rotate(model, -yaw, glm::vec3(0.0f, 1.0f, 0.0f));
-    shader.setMat4("model",model);
-    glBindVertexArray(VAO); 
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    glBindVertexArray(0);
-}
+    animations.emplace("idle", Animation("models/animations/Neutral Idle.dae",meshModel));
+    animations.emplace("running", Animation("models/animations/Running.dae",meshModel));
+    animations.emplace("left", Animation("models/animations/Left Strafe.dae",meshModel));
+    animations.emplace("right", Animation("models/animations/Right Strafe.dae",meshModel));
+    animations.emplace("backward", Animation("models/animations/Running Backward.dae",meshModel));
+    animations.emplace("battlecry", Animation("models/animations/Standing Taunt Battlecry.dae",meshModel));
 
+}
+void Player::Render(Shader &shader, Camera &camera)
+{
+    auto transforms = animator->GetFinalBoneMatrices();
+    for (int i = 0; i < transforms.size(); ++i)
+        shader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
+    
+    meshModel->UpdateModelMatrix();
+    meshModel->ModelMatrix = glm::rotate(meshModel->ModelMatrix, -camera.playerYaw - glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    shader.setMat4("model", meshModel->ModelMatrix);
+    shader.setVec3("viewPos",camera.position());
+    meshModel->Draw(shader);
+}
 
 void Player::HandleInput(float dt, const glm::vec3& fwd, const glm::vec3& right)
 {
@@ -154,19 +41,48 @@ void Player::HandleInput(float dt, const glm::vec3& fwd, const glm::vec3& right)
 
     if (!falling)
     {
+        
+        // --- Handle world movement ---
         glm::vec3 moveDir(0.0f);
         if (ks[SDL_SCANCODE_W]) moveDir -= glm::vec3(fwd.x, 0.0f, fwd.z);
-        if (ks[SDL_SCANCODE_S]) moveDir += glm::vec3(fwd.x, 0.0f, fwd.z);
         if (ks[SDL_SCANCODE_A]) moveDir += glm::vec3(right.x, 0.0f, right.z);
+        if (ks[SDL_SCANCODE_S]) moveDir += glm::vec3(fwd.x, 0.0f, fwd.z);
         if (ks[SDL_SCANCODE_D]) moveDir -= glm::vec3(right.x, 0.0f, right.z);
+        
+        
+        // --- Handle animations for resulting movement dir ---
+        if (ks[SDL_SCANCODE_W] && ks[SDL_SCANCODE_D] || ks[SDL_SCANCODE_W] && ks[SDL_SCANCODE_A]) animator->PlayAnimation(&animations["running"]);
+        else if (ks[SDL_SCANCODE_S] && ks[SDL_SCANCODE_D] || ks[SDL_SCANCODE_S] && ks[SDL_SCANCODE_A]) animator->PlayAnimation(&animations["backward"]);
+        else {
+            if (ks[SDL_SCANCODE_W]) animator->PlayAnimation(&animations["running"]);
+            if (ks[SDL_SCANCODE_A]) animator->PlayAnimation(&animations["left"]);
+            if (ks[SDL_SCANCODE_S]) animator->PlayAnimation(&animations["backward"]);
+            if (ks[SDL_SCANCODE_D]) animator->PlayAnimation(&animations["right"]);
+        }
+        
+        // --- Default idle if no movement key is pressed ---
+        if(!ks[SDL_SCANCODE_W] && !ks[SDL_SCANCODE_A] && !ks[SDL_SCANCODE_S] && !ks[SDL_SCANCODE_D]) animator->PlayAnimation(&animations["idle"]);
 
         if (glm::length(moveDir) > 0.0f) {
             moveDir = glm::normalize(moveDir);
             mVelocity = moveDir * targetSpeed;
         }
         else {
-            mVelocity.x *= 0.8f;
-            mVelocity.z *= 0.8f;
+            
+            // --- If the velocity is low just set it to zero to avoid unneccesary multiplications
+            if (mVelocity.x < 0.1){
+                mVelocity.x = 0;
+            }
+            else{
+                mVelocity.x *= 0.5f;
+            }
+            
+            if (mVelocity.z < 0.1){
+                mVelocity.z = 0;
+            }
+            else{
+                mVelocity.z *= 0.5f;
+            }
         }
     }
 }
@@ -176,6 +92,9 @@ void Player::Update(float deltaTime, TerrainMap& terrainMap)
     float terrainHeight = terrainMap.getTriHeightGlobal(mPosition.x, mPosition.z);
     float terrainDiff   = mPosition.y - terrainHeight;
     float slopeThreshold = 0.55f;
+    meshModel->Position = mPosition;
+    meshModel->UpdateModelMatrix();
+    animator->UpdateAnimation(deltaTime);
 
     falling = false;
     // Check slope
@@ -194,7 +113,7 @@ void Player::Update(float deltaTime, TerrainMap& terrainMap)
     else{
         mVelocity.y = 0.0f;
     }
-   
+
     mPosition.y = terrainMap.getTriHeightGlobal(mPosition.x, mPosition.z);
     mPosition += mVelocity * deltaTime;
 }

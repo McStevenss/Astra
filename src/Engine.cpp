@@ -8,7 +8,9 @@ Engine::Engine()
     // cam.pos = glm::vec3(TILE_SIZE*0.5f, 150.0f, -TILE_SIZE*0.2f);
     // playerPos = glm::vec3(TILE_SIZE*0.5f, 10.0f, -TILE_SIZE*0.2f);
     Initialize();
-    player = Player(glm::vec3(278.0f,0.0f,124.0f), glm::vec3(1.0f));
+
+
+    player = Player(glm::vec3(278.0f,0.0f,124.0f), glm::vec3(1.0f), "models/Vampire_base/Vampire A Lusth.dae");
     // playerPos = glm::vec3(278.0f,0.0f,124.0f);
     cam.targetPos = &player.mPosition;
 
@@ -72,7 +74,7 @@ void Engine::Start()
 {
     uint32_t prevTicks = SDL_GetTicks();
 
-    Shader PlayerShader("shaders/cube.vs","shaders/cube.fs");
+    Shader PlayerShader("shaders/model.vs","shaders/model.fs");
 
     while(running)
     {
@@ -133,7 +135,6 @@ void Engine::Start()
                 }
             }
 
-
             // --- Brush apply ---
             if(hasHit){
                 if (lmb) { terrainMap->applyBrush(brush, hit, shift); }
@@ -147,11 +148,15 @@ void Engine::Start()
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
         HandleInput(dt);
         cam.Update(dt);
+
+        // --- PLAYER ---
         player.Update(dt, *terrainMap);
         PlayerShader.use();
-        PlayerShader.setMat4("projection",Projection);
         PlayerShader.setMat4("view",View);
-        player.Render(PlayerShader, cam.playerYaw);
+        PlayerShader.setMat4("projection",Projection);
+        PlayerShader.setVec3("lightDir",lightDir);
+
+        player.Render(PlayerShader, cam);
 
 
         glm::mat4 Model(1.0f);
@@ -164,6 +169,7 @@ void Engine::Start()
         heightMapShader->setMat4("uModel", Model);
         heightMapShader->setMat3("uNrmM", NrmM);
         heightMapShader->setVec3("uCamPos", cam.positionWithCollision(terrainMap));
+        heightMapShader->setVec3("uLightDir", lightDir);
         terrainMap->render(wire);
 
         // Draw brush ring at hit position
