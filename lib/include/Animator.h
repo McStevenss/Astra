@@ -85,10 +85,10 @@ class Animator
                 m_Blend.time = 0.0f;
                 m_Blend.active = true;
                 
-                // Optionally, still switch the current animation for time tracking
+                // // Optionally, still switch the current animation for time tracking
                 m_CurrentAnimation = pAnimation;
                 m_CurrentTime = 0.0f;
-                CalculateBoneTransform(&m_CurrentAnimation->GetRootNode(), glm::mat4(1.0f));
+                // CalculateBoneTransform(&m_CurrentAnimation->GetRootNode(), glm::mat4(1.0f));
             }
           
         }
