@@ -10,7 +10,9 @@ Engine::Engine()
     Initialize();
 
 
-    player = Player(glm::vec3(278.0f,0.0f,124.0f), glm::vec3(1.0f), "models/Vampire_base/Vampire A Lusth.dae");
+    // player = Player(glm::vec3(278.0f,0.0f,124.0f), glm::vec3(1.0f), "models/Vampire_base/Vampire A Lusth.dae");
+    player = Player(glm::vec3(278.0f,0.0f,124.0f), glm::vec3(1.0f), "models/vampire_base/Vampire A Lusth.dae");
+    
     // playerPos = glm::vec3(278.0f,0.0f,124.0f);
     cam.targetPos = &player.mPosition;
 

@@ -45,43 +45,31 @@ class Animator
             return m_CurrentAnimation;
         }
 
-        // void UpdateAnimation(float dt)
-        // {
-        //     m_DeltaTime = dt;
-        //     if (m_CurrentAnimation)
-        //     {
-        //         m_CurrentTime += m_CurrentAnimation->GetTicksPerSecond() * dt;
-        //         m_CurrentTime = fmod(m_CurrentTime, m_CurrentAnimation->GetDuration());
-		// 		// CalculateBoneTransform(&m_CurrentAnimation->GetRootNode(), m_CurrentAnimation->GetRootTransform());
-		// 		CalculateBoneTransform(&m_CurrentAnimation->GetRootNode(), glm::mat4(1.0f));
-        //     }
-        // }
-
         void UpdateAnimation(float dt)
         {
             m_DeltaTime = dt;
-
-            // advance current animation time
-            if (m_CurrentAnimation)
-            {
-                m_CurrentTime += m_CurrentAnimation->GetTicksPerSecond() * dt;
-                m_CurrentTime = fmod(m_CurrentTime, m_CurrentAnimation->GetDuration());
-            }
 
             if (m_Blend.active)
             {
                 m_Blend.time += dt;
                 float alpha = glm::clamp(m_Blend.time / m_Blend.duration, 0.0f, 1.0f);
 
-                // blend bone transforms
-                CalculateBlendedBoneTransform(&m_CurrentAnimation->GetRootNode(),
-                                            glm::mat4(1.0f), alpha);
+                // During blend, "from" uses its current time,
+                CalculateBlendedBoneTransform(&m_Blend.from->GetRootNode(),&m_Blend.to->GetRootNode(),glm::mat4(1.0f), alpha);
 
                 if (alpha >= 1.0f)
+                {
                     m_Blend.active = false;
+                    m_CurrentAnimation = m_Blend.to;
+                    m_CurrentTime = 0.0f; // start playing it forward
+                }
             }
-            else
+            else if (m_CurrentAnimation)
             {
+                // advance normally
+                m_CurrentTime += m_CurrentAnimation->GetTicksPerSecond() * dt;
+                m_CurrentTime = fmod(m_CurrentTime, m_CurrentAnimation->GetDuration());
+
                 CalculateBoneTransform(&m_CurrentAnimation->GetRootNode(), glm::mat4(1.0f));
             }
         }
@@ -132,37 +120,53 @@ class Animator
                 CalculateBoneTransform(&node->children[i], globalTransformation);
         }
 
-        void CalculateBlendedBoneTransform(const AssimpNodeData* node, glm::mat4 parentTransform, float alpha)
+        void CalculateBlendedBoneTransform(const AssimpNodeData* fromNode,const AssimpNodeData* toNode,glm::mat4 parentTransform,float alpha)
         {
-            std::string nodeName = node->name;
+            std::string nodeName = fromNode->name;
 
-            glm::mat4 fromTransform = node->transformation;
-            glm::mat4 toTransform = node->transformation;
+            // Start with default transforms
+            glm::mat4 fromTransform = fromNode->transformation;
+            glm::mat4 toTransform   = toNode->transformation;
 
+            // Get bone data from "from" animation
             Bone* fromBone = m_Blend.from ? m_Blend.from->FindBone(nodeName) : nullptr;
+            if (fromBone)
+            {
+                fromBone->Update(m_CurrentTime); // use current time of the old animation
+                fromTransform = fromBone->GetLocalTransform();
+            }
+
+            // Get bone data from "to" animation
             Bone* toBone = m_Blend.to ? m_Blend.to->FindBone(nodeName) : nullptr;
+            if (toBone)
+            {
+                // 🚀 Freeze at time=0.0f during blend
+                toBone->Update(0.0f);
+                toTransform = toBone->GetLocalTransform();
+            }
 
-            if (fromBone) fromTransform = fromBone->GetLocalTransform();
-            if (toBone) toTransform = toBone->GetLocalTransform();
-
-            // Decompose transforms to translation/rotation/scale for proper interpolation
+            // Decompose both transforms
+            // NOTE: Decompose is we take a part the matrix and do calculations component wise so we can actually interpolate 
             glm::vec3 fromPos, toPos, fromScale, toScale;
             glm::quat fromRot, toRot;
-
             DecomposeTransform(fromTransform, fromPos, fromRot, fromScale);
             DecomposeTransform(toTransform, toPos, toRot, toScale);
 
-            // blend
+            // Blend them
             glm::vec3 pos = glm::mix(fromPos, toPos, alpha);
             glm::quat rot = glm::slerp(fromRot, toRot, alpha);
             glm::vec3 scale = glm::mix(fromScale, toScale, alpha);
 
-            glm::mat4 localTransform = glm::translate(glm::mat4(1.0f), pos) *
-                                    glm::toMat4(rot) *
-                                    glm::scale(glm::mat4(1.0f), scale);
+            // Rebuild local transform
+            glm::mat4 localTransform =
+                glm::translate(glm::mat4(1.0f), pos) *
+                glm::toMat4(rot) *
+                glm::scale(glm::mat4(1.0f), scale);
 
+            // Global transform
             glm::mat4 globalTransformation = parentTransform * localTransform;
 
+            // Write into final bone matrix if this node is a bone
             auto boneInfoMap = m_CurrentAnimation->GetBoneIDMap();
             if (boneInfoMap.find(nodeName) != boneInfoMap.end())
             {
@@ -171,9 +175,17 @@ class Animator
                 m_FinalBoneMatrices[index] = globalTransformation * offset;
             }
 
-            for (int i = 0; i < node->childrenCount; i++)
-                CalculateBlendedBoneTransform(&node->children[i], globalTransformation, alpha);
+            // Recurse through children
+            for (int i = 0; i < fromNode->childrenCount; i++)
+            {
+                // Both nodes should have the same hierarchy structure
+                CalculateBlendedBoneTransform(&fromNode->children[i],
+                                            &toNode->children[i],
+                                            globalTransformation,
+                                            alpha);
+            }
         }
+
 
         void DecomposeTransform(const glm::mat4& transform, glm::vec3& outPos, glm::quat& outRot, glm::vec3& outScale)
         {
