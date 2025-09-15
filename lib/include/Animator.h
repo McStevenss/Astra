@@ -74,7 +74,7 @@ class Animator
             }
         }
 
-        void PlayAnimation(Animation* pAnimation, float blendDuration = 0.1f)
+        void PlayAnimation(Animation* pAnimation, float blendDuration = 0.15f)
         {
 
             if (m_CurrentAnimation != pAnimation)
