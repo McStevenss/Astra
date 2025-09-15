@@ -34,6 +34,7 @@ class Player
         unsigned int VBO=0; 
         unsigned int VAO=0;
         unsigned int EBO=0;
+        float rotationOffset = 90.0;
         Animator* animator;
         Model* meshModel;
         std::map<std::string, Animation> animations;

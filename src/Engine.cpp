@@ -168,6 +168,7 @@ void Engine::Start()
         heightMapShader->use();
         heightMapShader->setMat4("uMVP", MVP);
         heightMapShader->setBool("uFlatShading", flatshade);
+        heightMapShader->setBool("uShowSlopes", showSlopes);
         heightMapShader->setMat4("uModel", Model);
         heightMapShader->setMat3("uNrmM", NrmM);
         heightMapShader->setVec3("uCamPos", cam.positionWithCollision(terrainMap));
@@ -401,7 +402,11 @@ ImVec2 Engine::RenderGUI()
     if(ImGui::Button("Toggle Wireframe")) { wire = !wire; }
     ImGui::Checkbox("Edit Mode", &editMode);
     ImGui::Checkbox("Flat Shading", &flatshade);
+    ImGui::Checkbox("Show Slopes", &showSlopes);
     ImGui::Checkbox("Project Circle", &projectCircle);
+
+
+
     ImGui::SeparatorText("Camera");
     ImGui::Text("Player Position: (%.1f, %.1f, %.1f)", player.mPosition.x, player.mPosition.y, player.mPosition.z);
     ImGui::Text("Player Velocity: (%.1f, %.1f, %.1f)", player.mVelocity.x, player.mVelocity.y, player.mVelocity.z);

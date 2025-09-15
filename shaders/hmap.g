@@ -11,6 +11,7 @@ out vec2 gsUV;
 flat out vec3 triColor;
 
 uniform vec3 uLightDir = normalize(vec3(0.3,1.0,0.2));
+uniform bool uShowSlopes = false;
 
 void main()
 {
@@ -27,7 +28,7 @@ void main()
     float slopeAngle = degrees(acos(dot(faceNormal, vec3(0,1,0))));
 
     // Determine triangle color
-    if (slopeAngle > 50.0)
+    if (slopeAngle > 50.0 && uShowSlopes)
     {
         triColor = vec3(1.0, 0.0, 0.0); // steep -> red
     }
