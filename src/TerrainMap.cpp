@@ -53,7 +53,14 @@ void TerrainMap::applyBrush(const Brush& b, const glm::vec3& hit, bool lower) {
     }
 }
 
-void TerrainMap::render(bool wire) {
+void TerrainMap::render(Shader &shader, const glm::mat4& projection, const glm::mat4& view, bool wire) {
+    glm::mat4 Model(1.0f);
+    glm::mat4 MVP = projection * view * Model;
+    glm::mat3 NrmM = glm::mat3(1.0f);
+
+    shader.setMat4("uModel", Model);
+    shader.setMat3("uNrmM", NrmM);
+    shader.setMat4("uMVP", MVP);
     for (auto& chunk : chunks) {
         chunk->Render(wire);
     }

@@ -23,7 +23,7 @@ public:
     TerrainMap(int worldSizeX, int worldSizeZ, int chunkSize, float cellSize);
 
     void build();
-    void render(bool wire=false);
+    void render(Shader &shader, const glm::mat4& projection, const glm::mat4& view, bool wire=false);
     void applyBrush(const Brush& b, const glm::vec3& hit, bool lower=false);
     void updateDirtyChunks();
     float getHeightGlobal(float x, float z);

@@ -27,6 +27,7 @@
 #include "Animator.h"
 #include "Model.hpp"
 #include "Mesh.hpp"
+#include "Skybox.h"
 
 class Engine {
 
@@ -40,6 +41,7 @@ class Engine {
         
         Camera cam;
         Player player;
+        SkyBox skyBox;
         void buildCircle(std::vector<glm::vec3>& out, float radius, int segments=64);
         void GenCircleGL();
         void HandleInput(float dt);
@@ -48,6 +50,8 @@ class Engine {
         void BindFramebuffer();
         void UnbindFramebuffer();
         float GetDeltaTime();
+        void RenderSkyBox(Shader &shader, const glm::mat4& projection, const glm::mat4& view);
+        void RenderEditRing(glm::vec3 hit, glm::mat4 VP);
         ImVec2 RenderGUI();
         Shader* heightMapShader;
         Shader* heightMapColorShader;
@@ -79,7 +83,7 @@ class Engine {
         bool lmb=false; 
         bool mmb=false; 
         bool shift=false;
-        bool flatshade=false;
+        bool flatshade=true;
         bool showSlopes=false;
         bool projectCircle=true;
         float EditorWindowWidth;
