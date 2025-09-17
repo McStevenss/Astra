@@ -43,20 +43,19 @@ void Player::HandleInput(float dt, const glm::vec3& fwd, const glm::vec3& right)
     float targetSpeed = (ks[SDL_SCANCODE_LCTRL] ? 25.0f : 5.0f);
 
     // --- Jump input ---
-    if (ks[SDL_SCANCODE_SPACE] && isGrounded) {
+    if (ks[SDL_SCANCODE_SPACE] && isGrounded && !isSliding) {
         mVelocity.y = jumpStrength; 
         isGrounded = false;
         // animator->PlayAnimation(&animations["jump"]);
     }
 
-    // --- Ground movement only if grounded ---
+    // --- Ground movement only if grounded and not sliding ---
     if (isGrounded)
     {
-        glm::vec3 moveDir(0.0f);
         
         if(!isSliding)
         {
-
+            glm::vec3 moveDir(0.0f);
             if (ks[SDL_SCANCODE_W]) moveDir -= glm::vec3(fwd.x, 0.0f, fwd.z);
             if (ks[SDL_SCANCODE_A]) moveDir += glm::vec3(right.x, 0.0f, right.z);
             if (ks[SDL_SCANCODE_S]) moveDir += glm::vec3(fwd.x, 0.0f, fwd.z);
@@ -113,13 +112,14 @@ void Player::Update(float deltaTime, TerrainMap& terrainMap)
     
     float slopeAngle = glm::degrees(acos(glm::dot(normal, glm::vec3(0,1,0))));
     float maxSlopeDeg = 50.0f;
-    
+
     // --- Apply airborne gravity ---
     if (!isGrounded) {
         mVelocity.y += gravityConstant * deltaTime;
     }
     
-    if (isGrounded && slopeAngle > maxSlopeDeg) {
+    // if (isGrounded && slopeAngle > maxSlopeDeg) {
+    if (slopeAngle > maxSlopeDeg) {
         glm::vec3 accel = terrainMap.getDownhillAccelFromNormal(normal, gravityConstant);
         mVelocity += accel * deltaTime;
         mVelocity -= glm::dot(mVelocity, normal) * normal;  
@@ -131,12 +131,19 @@ void Player::Update(float deltaTime, TerrainMap& terrainMap)
         isSliding = false;
     }
 
-    // if ((terrainDiff <= terrainSnapTreshhold) || (isSliding && isGrounded)) 
+
+    // --- Default terrain snap if in air and underground
+    if (terrainDiff <= 0.0f && !isGrounded){
+        isGrounded = true;
+    } 
+
+    // --- Snap player to terrain if terraindiff is not that much to avoid bounching or flying downhill
     if (terrainDiff <= terrainSnapTreshhold) 
     {
         mPosition.y = terrainHeight;
         isGrounded = true;
-    } else 
+    }
+    else 
     {
         isGrounded = false;
     }
