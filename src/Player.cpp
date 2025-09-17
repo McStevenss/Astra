@@ -37,7 +37,7 @@ void Player::Render(Shader &shader, Camera &camera)
     meshModel->Draw(shader);
 }
 
-void Player::HandleInput(float dt, const glm::vec3& fwd, const glm::vec3& right)
+void Player::HandleInput(float dt, const glm::vec3& fwd, const glm::vec3& right, bool rmb, bool lmb)
 {
     const Uint8* ks = SDL_GetKeyboardState(nullptr);
     float targetSpeed = (ks[SDL_SCANCODE_LCTRL] ? 25.0f : 5.0f);
@@ -57,17 +57,17 @@ void Player::HandleInput(float dt, const glm::vec3& fwd, const glm::vec3& right)
         {
             glm::vec3 moveDir(0.0f);
             if (ks[SDL_SCANCODE_W]) moveDir -= glm::vec3(fwd.x, 0.0f, fwd.z);
-            if (ks[SDL_SCANCODE_A]) moveDir += glm::vec3(right.x, 0.0f, right.z);
+            if (ks[SDL_SCANCODE_A] && rmb) moveDir += glm::vec3(right.x, 0.0f, right.z);
             if (ks[SDL_SCANCODE_S]) moveDir += glm::vec3(fwd.x, 0.0f, fwd.z);
-            if (ks[SDL_SCANCODE_D]) moveDir -= glm::vec3(right.x, 0.0f, right.z);
+            if (ks[SDL_SCANCODE_D] && rmb) moveDir -= glm::vec3(right.x, 0.0f, right.z);
             
             
             // animations (your logic kept as-is)
-            if (ks[SDL_SCANCODE_W] && ks[SDL_SCANCODE_D]) {
+            if (ks[SDL_SCANCODE_W] && ks[SDL_SCANCODE_D] && rmb) {
                 animator->PlayAnimation(&animations["right"]);
                 rotationOffset = 45.0f;
             }
-            else if (ks[SDL_SCANCODE_W] && ks[SDL_SCANCODE_A]) {
+            else if (ks[SDL_SCANCODE_W] && ks[SDL_SCANCODE_A] && rmb) {
                 animator->PlayAnimation(&animations["left"]);
                 rotationOffset = 135.0f;
             }
@@ -76,9 +76,9 @@ void Player::HandleInput(float dt, const glm::vec3& fwd, const glm::vec3& right)
             }
             else {
                 if (ks[SDL_SCANCODE_W]) animator->PlayAnimation(&animations["running"]);
-                if (ks[SDL_SCANCODE_A]) animator->PlayAnimation(&animations["left"]);
+                if (ks[SDL_SCANCODE_A] && rmb) animator->PlayAnimation(&animations["left"]);
                 if (ks[SDL_SCANCODE_S]) animator->PlayAnimation(&animations["backward"]);
-                if (ks[SDL_SCANCODE_D]) animator->PlayAnimation(&animations["right"]);
+                if (ks[SDL_SCANCODE_D] && rmb) animator->PlayAnimation(&animations["right"]);
                 rotationOffset = 90.0f;
             }
         
@@ -87,7 +87,11 @@ void Player::HandleInput(float dt, const glm::vec3& fwd, const glm::vec3& right)
                 animator->PlayAnimation(&animations["idle"]);
                 rotationOffset = 90.0f;
             }
-            
+            // if ((ks[SDL_SCANCODE_A] || ks[SDL_SCANCODE_D] )&& !rmb){
+            //     animator->PlayAnimation(&animations["idle"]);
+            //     rotationOffset = 90.0f;
+
+            // }
             // --- Apply ground movement ---
             if (glm::length(moveDir) > 0.0f) {
                 moveDir = glm::normalize(moveDir);

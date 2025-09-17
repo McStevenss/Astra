@@ -18,7 +18,7 @@ class Player
         // void Render(Shader &shader, float yaw);
         void Render(Shader &shader, Camera &camera);
         void Update(float deltaTime, TerrainMap& terrainMap);
-        void HandleInput(float dt, const glm::vec3& fwd, const glm::vec3& right);
+        void HandleInput(float dt, const glm::vec3& fwd, const glm::vec3& right, bool rmb, bool lmb);
         void LoadAnimations();
 
         glm::mat4 mModelMatrix = glm::mat4(1.0f);

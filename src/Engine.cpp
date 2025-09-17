@@ -316,7 +316,7 @@ void Engine::HandleInput(float dt)
         }
     }
 
-    player.HandleInput(dt,cam.forward,cam.right);
+    player.HandleInput(dt,cam.forward,cam.right, rmb, lmb);
 }
 
 void Engine::CreateFrameBuffer()

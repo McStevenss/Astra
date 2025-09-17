@@ -96,6 +96,31 @@ void Camera::Zoom(SDL_Event e)
 void Camera::Update(float dt)
 {
     // forward = glm::normalize(glm::vec3(cosf(pitch)*cosf(yaw), 0.0f, cosf(pitch)*sinf(yaw)));
+
+    const Uint8* ks = SDL_GetKeyboardState(nullptr);
+
+    // --- Dont rotate if RMB is held
+    if(!rmb)
+    {
+        if(ks[SDL_SCANCODE_A])
+        {
+            playerYaw -= 5 * 0.0035f;
+            if(!lmb)
+            {
+                yaw -= 5 * 0.0035f;
+            }
+        }
+        if(ks[SDL_SCANCODE_D]) 
+        {
+            playerYaw += 5 * 0.0035f;
+            if(!lmb)
+            {
+                yaw += 5 * 0.0035f;
+            }
+        }
+    }
+
+
     forward = glm::normalize(glm::vec3(cosf(pitch)*cosf(playerYaw), 0.0f, cosf(pitch)*sinf(playerYaw)));
     right = glm::normalize(glm::cross(forward, glm::vec3(0,1,0)));
 }
