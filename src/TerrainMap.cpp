@@ -155,8 +155,11 @@ glm::vec3 TerrainMap::getDownhillAccelFromNormal(const glm::vec3& normal, float 
     glm::vec3 tangent = gravity - glm::dot(gravity, normal) * normal;
 
     if (tangent.y > 0.0f) tangent = -tangent;
+    // tangent = glm::normalize(tangent);
 
-    return tangent; // already scaled by gravityConstant
+    // return tangent; // already scaled by gravityConstant
+    return tangent;
+    
 }
 
 void TerrainMap::save(const std::string& folderPath) {

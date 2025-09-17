@@ -105,3 +105,8 @@ void Camera::recalculateViewport(SDL_Event e)
     float aspect = e.window.data1 / (float)e.window.data2;
     glViewport(0,0,e.window.data1,e.window.data2); 
 }
+
+void Camera::SetFocusPosition(glm::vec3* position)
+{
+    targetPos = position;
+}

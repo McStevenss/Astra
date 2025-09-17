@@ -9,7 +9,8 @@ Engine::Engine()
     cam.pitch = 0.4f;
 
     player = Player(glm::vec3(278.0f,0.0f,124.0f), glm::vec3(1.0f), "models/vampire_base/Vampire A Lusth.dae");    
-    cam.targetPos = &player.mPosition;
+    // cam.targetPos = &player.mPosition;
+    cam.SetFocusPosition(&player.mPosition);
 
 
     heightMapShader = new Shader("shaders/hmap.vs","shaders/hmap.fs", "shaders/hmap.g");
@@ -112,8 +113,6 @@ void Engine::Start()
             float yN = (1.0f - 2.0f * localY / EditorWindowHeight);
             glm::vec4 p0 = invVP * glm::vec4(xN,yN,-1,1); p0/=p0.w;
             glm::vec4 p1 = invVP * glm::vec4(xN,yN, 1,1); p1/=p1.w;
-
-
             glm::vec3 ro = glm::vec3(p0); glm::vec3 rd = glm::normalize(glm::vec3(p1-p0));
  
             hasHit = false;
@@ -424,6 +423,8 @@ ImVec2 Engine::RenderGUI()
     ImGui::SeparatorText("Camera");
     ImGui::Text("Player Position: (%.1f, %.1f, %.1f)", player.mPosition.x, player.mPosition.y, player.mPosition.z);
     ImGui::Text("Player Velocity: (%.1f, %.1f, %.1f)", player.mVelocity.x, player.mVelocity.y, player.mVelocity.z);
+    ImGui::Text("Player Is Grounded: %s", player.isGrounded ? "true" : "false");
+    ImGui::Text("Player Is Sliding: %s", player.isSliding ? "true" : "false");
     ImGui::Text("Yaw: %.1f", cam.yaw);
     ImGui::Text("Pitch: %.1f", cam.pitch);
     ImGui::Text("Distance: %.1f", cam.distance);

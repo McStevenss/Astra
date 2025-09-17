@@ -24,12 +24,14 @@ class Player
         glm::mat4 mModelMatrix = glm::mat4(1.0f);
         glm::vec3 mPosition = glm::vec3(1.0f);
         glm::vec3 mVelocity = glm::vec3(0.0f);
-        bool onGround = true;
-        bool falling = false;
-        int jumpVelocity = 5;
+        bool isGrounded = true;
+        bool isSliding = false;
 
     private:
         float gravityConstant =-19.81f;
+        float terrainSnapTreshhold = 0.05f;
+        float jumpStrength = 8.0f;     // tweak for desired jump height
+
         float vertices[216]; 
         unsigned int VBO=0; 
         unsigned int VAO=0;
