@@ -9,6 +9,27 @@
 #include "Model.hpp"
 #include "Animation.h"
 #include "Camera.hpp"
+
+
+enum class AnimationState {
+    Idle,
+    Running,
+    StrafeLeft,
+    StrafeRight,
+    Backward,
+    Battlecry,
+    Jump,
+    Falling
+};
+
+namespace std {
+    template<> struct hash<AnimationState> {
+        size_t operator()(const AnimationState& state) const noexcept {
+            return static_cast<size_t>(state);
+        }
+    };
+}
+
 class Player
 {
     public:
@@ -38,6 +59,8 @@ class Player
         unsigned int EBO=0;
         float rotationOffset = 90.0;
         Animator* animator;
+        AnimationState currentAnimationState = AnimationState::Idle;
         Model* meshModel;
-        std::map<std::string, Animation> animations;
+        // std::map<std::string, Animation> animations;
+        std::unordered_map<AnimationState, Animation> animations;
 };

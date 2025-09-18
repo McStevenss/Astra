@@ -306,6 +306,7 @@ void Engine::HandleInput(float dt)
             if(e.key.keysym.sym==SDLK_TAB) flatshade=!flatshade;
             if(e.key.keysym.sym==SDLK_f){ wire=!wire; }
             if(e.key.keysym.sym==SDLK_F9){ terrainMap->load("saved");} 
+            if(e.key.keysym.sym==SDLK_F10){ terrainMap->save("saved");} 
         }
         
         if(e.type==SDL_KEYUP){ if(e.key.keysym.sym==SDLK_LSHIFT || e.key.keysym.sym==SDLK_RSHIFT) shift=false; }

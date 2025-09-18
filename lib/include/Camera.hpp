@@ -28,9 +28,6 @@ class Camera
         glm::vec3 forward;
         glm::vec3 right;
 
-        // int lastmx = 0;
-        // int lastmy = 0;
-        
         float mFov=60.0f; 
         float yaw=1.00f;
         float pitch=-0.35f; // radians
@@ -44,5 +41,6 @@ class Camera
         bool lmb=false;
         bool rmb=false;
         bool mmb=false;
+        float turnRate = 5 * 0.0035f;
 
 };

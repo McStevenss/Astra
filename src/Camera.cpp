@@ -104,20 +104,47 @@ void Camera::Update(float dt)
     {
         if(ks[SDL_SCANCODE_A])
         {
-            playerYaw -= 5 * 0.0035f;
+            playerYaw -= turnRate;
             if(!lmb)
             {
-                yaw -= 5 * 0.0035f;
+                yaw -= turnRate;
+                if(yaw > playerYaw)
+                    yaw -= turnRate * 2;
+                if(yaw < playerYaw)
+                    yaw += turnRate * 2;
             }
         }
         if(ks[SDL_SCANCODE_D]) 
         {
-            playerYaw += 5 * 0.0035f;
+            playerYaw += turnRate;
             if(!lmb)
             {
-                yaw += 5 * 0.0035f;
+                yaw += turnRate;
+
+                if(yaw > playerYaw)
+                    yaw -= turnRate * 2;
+                if(yaw < playerYaw)
+                    yaw += turnRate * 2;
             }
         }
+
+        if(ks[SDL_SCANCODE_W] && yaw != playerYaw && !lmb)
+        {
+            if(yaw > playerYaw)
+                yaw -= turnRate * 2;
+            if(yaw < playerYaw)
+                yaw += turnRate * 2;
+
+        }
+
+        if(ks[SDL_SCANCODE_S] && yaw != playerYaw && !lmb)
+        {
+            if(yaw > playerYaw)
+                yaw -= turnRate * 2;
+            if(yaw < playerYaw)
+                yaw += turnRate * 2;
+        }
+
     }
 
 
