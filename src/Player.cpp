@@ -12,29 +12,16 @@ Player::Player(glm::vec3 position, glm::vec3 scale, string const &modelPath)
     animator = new Animator(&animations[currentAnimationState]);
 }
 
-// void Player::LoadAnimations()
-// {
-//     animations.emplace("idle", Animation("models/animations/Neutral Idle.dae",meshModel));
-//     animations.emplace("running", Animation("models/animations/Running.dae",meshModel));
-//     animations.emplace("left", Animation("models/animations/Left Strafe.dae",meshModel));
-//     animations.emplace("right", Animation("models/animations/Right Strafe.dae",meshModel));
-//     animations.emplace("backward", Animation("models/animations/Running Backward.dae",meshModel));
-//     animations.emplace("battlecry", Animation("models/animations/Standing Taunt Battlecry.dae",meshModel));
-//     animations.emplace("Jump", Animation("models/animations/Jumping Up.dae",meshModel));
-//     animations.emplace("Falling", Animation("models/animations/Falling Idle.dae",meshModel));
-
-// }
-
 void Player::LoadAnimations()
 {
-    animations.emplace(AnimationState::Idle,      Animation("models/animations/Neutral Idle.dae", meshModel));
-    animations.emplace(AnimationState::Running,   Animation("models/animations/Running.dae", meshModel));
-    animations.emplace(AnimationState::StrafeLeft,  Animation("models/animations/Left Strafe.dae", meshModel));
-    animations.emplace(AnimationState::StrafeRight, Animation("models/animations/Right Strafe.dae", meshModel));
-    animations.emplace(AnimationState::Backward,  Animation("models/animations/Running Backward.dae", meshModel));
-    animations.emplace(AnimationState::Battlecry, Animation("models/animations/Standing Taunt Battlecry.dae", meshModel));
-    animations.emplace(AnimationState::Jump,      Animation("models/animations/Jumping Up.dae", meshModel));
-    animations.emplace(AnimationState::Falling,   Animation("models/animations/Falling Idle.dae", meshModel));
+    animations.emplace(AnimationState::Idle,       Animation("models/animations/Neutral Idle.dae", meshModel));
+    animations.emplace(AnimationState::Running,    Animation("models/animations/Running.dae", meshModel));
+    animations.emplace(AnimationState::StrafeLeft, Animation("models/animations/Left Strafe.dae", meshModel));
+    animations.emplace(AnimationState::StrafeRight,Animation("models/animations/Right Strafe.dae", meshModel));
+    animations.emplace(AnimationState::Backward,   Animation("models/animations/Running Backward.dae", meshModel));
+    animations.emplace(AnimationState::Battlecry,  Animation("models/animations/Standing Taunt Battlecry.dae", meshModel));
+    animations.emplace(AnimationState::Jump,       Animation("models/animations/Jumping Up.dae", meshModel));
+    animations.emplace(AnimationState::Falling,    Animation("models/animations/Falling Idle.dae", meshModel));
 }
 
 void Player::Render(Shader &shader, Camera &camera)
@@ -56,14 +43,9 @@ void Player::HandleInput(float dt, const glm::vec3& fwd, const glm::vec3& right,
     float targetSpeed = (ks[SDL_SCANCODE_LCTRL] ? 25.0f : 5.0f);
 
     glm::vec3 moveDir(0.0f);
-    
-    // // --- Jump input ---
-    // if (ks[SDL_SCANCODE_SPACE] && isGrounded && !isSliding) {
-        //     mVelocity.y = jumpStrength; 
-        //     isGrounded = false;
-        // }
+  
         
-        // --- Ground movement only if grounded and not sliding ---
+    // --- Ground movement only if grounded and not sliding ---
     if (isGrounded && !isSliding)
     {
         AnimationState newState = AnimationState::Idle;
