@@ -21,7 +21,7 @@ enum class AnimationState {
     Jump,
     Falling
 };
-
+// --- Hash function for AnimationState enum so we can use it as a key for animations
 namespace std {
     template<> struct hash<AnimationState> {
         size_t operator()(const AnimationState& state) const noexcept {
@@ -51,7 +51,7 @@ class Player
     private:
         float gravityConstant =-19.81f;
         float terrainSnapTreshhold = 0.05f;
-        float jumpStrength = 8.0f;     // tweak for desired jump height
+        float jumpStrength = 8.0f;
 
         float vertices[216]; 
         unsigned int VBO=0; 
@@ -59,8 +59,9 @@ class Player
         unsigned int EBO=0;
         float rotationOffset = 90.0;
         Animator* animator;
-        AnimationState currentAnimationState = AnimationState::Idle;
         Model* meshModel;
-        // std::map<std::string, Animation> animations;
+
+        // --- Default animation is Idle ---
+        AnimationState currentAnimationState = AnimationState::Idle;
         std::unordered_map<AnimationState, Animation> animations;
 };
