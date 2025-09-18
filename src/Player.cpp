@@ -142,7 +142,7 @@ void Player::Update(float deltaTime, TerrainMap& terrainMap)
     }
     
     // if (isGrounded && slopeAngle > maxSlopeDeg) {
-    if (slopeAngle > maxSlopeDeg) {
+    if (terrainDiff <= terrainSnapTreshhold && slopeAngle > maxSlopeDeg) {
         glm::vec3 accel = terrainMap.getDownhillAccelFromNormal(normal, gravityConstant);
         mVelocity += accel * deltaTime;
         mVelocity -= glm::dot(mVelocity, normal) * normal;  
