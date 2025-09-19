@@ -17,7 +17,6 @@ Engine::Engine()
     heightMapColorShader = new Shader("shaders/hmap_color.vs","shaders/hmap_color.fs");
     terrainMap = new TerrainMap(2,2,GRID_SIZE, CELL_SIZE);
     terrainMap->build();
-    buildCircle(ringVerts, 1.0f);
     GenCircleGL();
 
     CreateFrameBuffer();
@@ -75,6 +74,8 @@ void Engine::Start()
 
     Shader PlayerShader("shaders/model.vs","shaders/model.fs");
     Shader SkyboxShader("shaders/skybox.vs","shaders/skybox.fs");
+
+    // Model testModel("models/Test_pillar/TestPillar.dae",false,false);
 
     while(running)
     {
@@ -154,6 +155,7 @@ void Engine::Start()
         PlayerShader.setMat4("projection",Projection);
         PlayerShader.setVec3("lightDir",lightDir);
         player.Render(PlayerShader, cam);
+        player.DrawPosCircle(VP);
 
 
         // --- Render Terrain ---

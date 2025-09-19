@@ -41,6 +41,8 @@ class Player
         void Update(float deltaTime, TerrainMap& terrainMap);
         void HandleInput(float dt, const glm::vec3& fwd, const glm::vec3& right, bool rmb, bool lmb);
         void LoadAnimations();
+        void DrawPosCircle(glm::mat4 VP);
+        
 
         glm::mat4 mModelMatrix = glm::mat4(1.0f);
         glm::vec3 mPosition = glm::vec3(1.0f);
@@ -49,9 +51,15 @@ class Player
         bool isSliding = false;
 
     private:
+
+        void buildCircle(std::vector<glm::vec3>& out, float radius, int segments);
+        void GenCircleGL();
+        Shader* circleShader;
+
         float gravityConstant =-19.81f;
         float terrainSnapTreshhold = 0.05f;
         float jumpStrength = 8.0f;
+        float currentTerrainHeight = 0.0f;
 
         float vertices[216]; 
         unsigned int VBO=0; 
@@ -60,6 +68,10 @@ class Player
         float rotationOffset = 90.0;
         Animator* animator;
         Model* meshModel;
+
+        GLuint ringVBO=0;
+        GLuint ringVAO=0;
+        std::vector<glm::vec3> ringVerts;
 
         // --- Default animation is Idle ---
         AnimationState currentAnimationState = AnimationState::Idle;

@@ -10,6 +10,10 @@ Player::Player(glm::vec3 position, glm::vec3 scale, string const &modelPath)
 
     LoadAnimations();
     animator = new Animator(&animations[currentAnimationState]);
+
+    circleShader = new Shader("shaders/circle.vs","shaders/circle.fs");
+
+    GenCircleGL();
 }
 
 void Player::LoadAnimations()
@@ -35,6 +39,7 @@ void Player::Render(Shader &shader, Camera &camera)
     shader.setMat4("model", meshModel->ModelMatrix);
     shader.setVec3("viewPos",camera.position());
     meshModel->Draw(shader);
+
 }
 
 void Player::HandleInput(float dt, const glm::vec3& fwd, const glm::vec3& right, bool rmb, bool lmb)
@@ -109,65 +114,109 @@ void Player::HandleInput(float dt, const glm::vec3& fwd, const glm::vec3& right,
 }
 
 
+
 void Player::Update(float deltaTime, TerrainMap& terrainMap)
 {
     float terrainHeight = terrainMap.getTriHeightGlobal(mPosition.x, mPosition.z);
+    currentTerrainHeight = terrainHeight;
     float terrainDiff   = mPosition.y - terrainHeight;
     glm::vec3 normal = terrainMap.getNormalGlobal(mPosition.x, mPosition.z);
     
     float slopeAngle = glm::degrees(acos(glm::dot(normal, glm::vec3(0,1,0))));
     float maxSlopeDeg = 50.0f;
-
+    
     // --- Apply airborne gravity ---
     if (!isGrounded) {
         mVelocity.y += gravityConstant * deltaTime;
     }
     
     // if (isGrounded && slopeAngle > maxSlopeDeg) {
-    if (terrainDiff <= terrainSnapTreshhold && slopeAngle > maxSlopeDeg) {
-        glm::vec3 accel = terrainMap.getDownhillAccelFromNormal(normal, gravityConstant);
-        mVelocity += accel * deltaTime;
-        mVelocity -= glm::dot(mVelocity, normal) * normal;  
-        isSliding = true;
-        // Project the velocity onto the tile/plane we're one so it doesnt explode or aggressively accumulate.
-    }
-    else if (isGrounded && slopeAngle < maxSlopeDeg){
-        mVelocity.y = 0.0f;
-        isSliding = false;
-    }
+        if (terrainDiff <= terrainSnapTreshhold && slopeAngle > maxSlopeDeg) {
+            glm::vec3 accel = terrainMap.getDownhillAccelFromNormal(normal, gravityConstant);
+            mVelocity += accel * deltaTime;
+            mVelocity -= glm::dot(mVelocity, normal) * normal;  
+            isSliding = true;
+            // Project the velocity onto the tile/plane we're one so it doesnt explode or aggressively accumulate.
+        }
+        else if (isGrounded && slopeAngle < maxSlopeDeg){
+            mVelocity.y = 0.0f;
+            isSliding = false;
+        }
+        
+        
+        // --- Default terrain snap if in air and underground
+        if (terrainDiff <= 0.0f && !isGrounded){
+            isGrounded = true;
+        } 
+        
+        // --- Snap player to terrain if terraindiff is not that much to avoid bounching or flying downhill
+        if (terrainDiff <= terrainSnapTreshhold) 
+        {
+            mPosition.y = terrainHeight;
+            isGrounded = true;
+        }
+        else 
+        {
+            isGrounded = false;
+        }
+        
+        // --- Apply velocity and update visuals ---
+        mPosition += mVelocity * deltaTime;
+        meshModel->Position = mPosition;
+        
+        if(mVelocity.y > 0){
+            currentAnimationState = AnimationState::Falling;
+            animator->PlayAnimation(&animations[currentAnimationState]);
+        }
+        else if(mVelocity.y <= -2){
+            currentAnimationState = AnimationState::Falling;
+            animator->PlayAnimation(&animations[currentAnimationState]);
+        }
+        
+        
+        meshModel->UpdateModelMatrix();
+        animator->UpdateAnimation(deltaTime);
+        
+}
 
-
-    // --- Default terrain snap if in air and underground
-    if (terrainDiff <= 0.0f && !isGrounded){
-        isGrounded = true;
-    } 
-
-    // --- Snap player to terrain if terraindiff is not that much to avoid bounching or flying downhill
-    if (terrainDiff <= terrainSnapTreshhold) 
-    {
-        mPosition.y = terrainHeight;
-        isGrounded = true;
-    }
-    else 
-    {
-        isGrounded = false;
-    }
-
-    // --- Apply velocity and update visuals ---
-    mPosition += mVelocity * deltaTime;
-    meshModel->Position = mPosition;
-
-    if(mVelocity.y > 0){
-        currentAnimationState = AnimationState::Falling;
-        animator->PlayAnimation(&animations[currentAnimationState]);
-    }
-    else if(mVelocity.y <= -2){
-        currentAnimationState = AnimationState::Falling;
-        animator->PlayAnimation(&animations[currentAnimationState]);
-    }
-
-
-    meshModel->UpdateModelMatrix();
-    animator->UpdateAnimation(deltaTime);
+void Player::GenCircleGL()
+{
+    glGenVertexArrays(1, &ringVAO); glGenBuffers(1, &ringVBO);
+    glBindVertexArray(ringVAO); glBindBuffer(GL_ARRAY_BUFFER, ringVBO);
+    glBufferData(GL_ARRAY_BUFFER, ringVerts.size()*sizeof(glm::vec3), ringVerts.data(), GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0); glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,(void*)0); glBindVertexArray(0);
 
 }
+
+void Player::DrawPosCircle(glm::mat4 VP)
+{
+    std::vector<glm::vec3> ring; buildCircle(ring, 0.5f, 24);    
+    glm::mat4 Mring = glm::mat4(1.0f); // identity
+
+    for(auto& v : ring){ v.y = 0.0f; }
+    Mring = glm::translate(glm::mat4(1.0f), glm::vec3(mPosition.x, currentTerrainHeight + 0.05f, mPosition.z));
+  
+    glBindBuffer(GL_ARRAY_BUFFER, ringVBO);
+    glBufferData(GL_ARRAY_BUFFER, ring.size()*sizeof(glm::vec3), ring.data(), GL_DYNAMIC_DRAW);
+
+    circleShader->use();
+    circleShader->setMat4("uVP", VP);
+    circleShader->setMat4("uM", Mring);
+    circleShader->setVec4("uColor", glm::vec4(0.0f,0.0f,0.5f,1.0f));
+    
+    glBindVertexArray(ringVAO);
+    glDrawArrays(GL_LINE_LOOP, 0, (GLint)ring.size());
+    glBindVertexArray(0);
+}
+
+
+void Player::buildCircle(std::vector<glm::vec3>& out, float radius, int segments)
+{
+    out.clear(); out.reserve(segments);
+    for(int i=0;i<segments;++i){
+        float a = (i/(float)segments)*6.2831853f;
+        out.emplace_back(radius*cosf(a), 0.0f, radius*sinf(a));
+    }
+}
+
+    

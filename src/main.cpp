@@ -44,6 +44,8 @@
 
 //g++ src/*.cpp lib/build/win/*.o -I lib/include/ -lSDL2 -lopengl32 -lgdi32 -lwinmm -luser32 -mwindows -O2 -o bin/TerrEdit.exe
 
+//g++ src/*.cpp lib/build/win/*.o -I lib/include/ -Llib/build/win -o bin/Game.exe -lSDL2 -lopengl32 -lgdi32 -lwinmm -luser32 -lassimp -g -O0
+
 #include "Engine.h"
 
 // int main(int argc, char** argv){
