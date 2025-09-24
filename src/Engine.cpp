@@ -5,21 +5,19 @@ Engine::Engine()
     Initialize();
 
     cam = Camera(60.0f,0.1f,1000.0f);
-    cam.yaw = 4.7f;
-    cam.pitch = 0.4f;
+    cam.yaw = 4.7f; cam.pitch = 0.4f;
 
     player = Player(glm::vec3(278.0f,0.0f,124.0f), glm::vec3(1.0f), "models/vampire_base/Vampire A Lusth.dae");    
-    // cam.targetPos = &player.mPosition;
     cam.SetFocusPosition(&player.mPosition);
-
 
     heightMapShader = new Shader("shaders/hmap.vs","shaders/hmap.fs", "shaders/hmap.g");
     heightMapColorShader = new Shader("shaders/hmap_color.vs","shaders/hmap_color.fs");
+
     terrainMap = new TerrainMap(2,2,GRID_SIZE, CELL_SIZE);
     terrainMap->build();
+    
+    
     GenCircleGL();
-
-
     editorFramebuffer.Init(ScreenWidth, ScreenHeight);
     skyBox.Init();
 
@@ -105,13 +103,13 @@ void Engine::Start()
         glm::mat4 View = cam.view(terrainMap);
         glm::mat4 Projection = cam.proj(EditorWindowWidth/(float)EditorWindowHeight);
         glm::mat4 VP = Projection*View; 
-        glm::mat4 invVP = glm::inverse(VP);
         bool hasHit = false;
         glm::vec3 hit;
         
 
         if(insideImage && editMode){
-
+            
+            glm::mat4 invVP = glm::inverse(VP);
             float xN = (2.0f * localPos.x / EditorWindowWidth - 1.0f);
             float yN = (1.0f - 2.0f * localPos.y / EditorWindowHeight);
             glm::vec4 p0 = invVP * glm::vec4(xN,yN,-1,1);
@@ -341,15 +339,10 @@ ImVec2 Engine::RenderGUI()
 
     ImGui::End();
 
-
-        // --- Settings Window (20%) ---
+    // --- Settings Window (20%) ---
     ImGui::SetNextWindowPos(ImVec2(ScreenWidth * 0.8f, 0), ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(ScreenWidth * 0.2f, ScreenHeight), ImGuiCond_Always);
-    ImGui::Begin("Settings",
-                 nullptr,
-                 ImGuiWindowFlags_NoMove |
-                 ImGuiWindowFlags_NoResize |
-                 ImGuiWindowFlags_NoCollapse);
+    ImGui::Begin("Settings", nullptr, ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
     //--------------------------------------------------------------------
     ImGui::SeparatorText("Status");
@@ -359,8 +352,7 @@ ImVec2 Engine::RenderGUI()
     ImGui::Checkbox("Show Slopes", &showSlopes);
     ImGui::Checkbox("Project Circle", &projectCircle);
 
-
-
+    //--------------------------------------------------------------------
     ImGui::SeparatorText("Camera");
     ImGui::Text("Player Position: (%.1f, %.1f, %.1f)", player.mPosition.x, player.mPosition.y, player.mPosition.z);
     ImGui::Text("Player Velocity: (%.1f, %.1f, %.1f)", player.mVelocity.x, player.mVelocity.y, player.mVelocity.z);

@@ -22,22 +22,23 @@ class Camera
         glm::vec3 positionWithCollision(TerrainMap* terrain) const;
         glm::mat4 view(TerrainMap* terrain) const;
         glm::vec3 pos;
-        glm::vec3* targetPos;
         
         
         glm::vec3 forward;
         glm::vec3 right;
-
+        
         float mFov=60.0f; 
         float yaw=1.00f;
         float pitch=-0.35f; // radians
+        float distance = 5.0f;
+        float playerYaw = yaw;
+    
+    private:
+        glm::vec3* targetPos;
         float nearP=0.1f; 
         float farP=2000.0f;
-        float distance = 5.0f;
         float minDistance = 2.0f;
         float maxDistance = 30.0f;
-        float playerYaw = yaw;
-    private:
         bool lmb=false;
         bool rmb=false;
         bool mmb=false;
