@@ -19,8 +19,8 @@ Engine::Engine()
     terrainMap->build();
     GenCircleGL();
 
-    CreateFrameBuffer();
 
+    editorFramebuffer.Init(ScreenWidth, ScreenHeight);
     skyBox.Init();
 
     terrainMap->load("saved");
@@ -88,19 +88,21 @@ void Engine::Start()
         ImVec2 imgPos = RenderGUI(); // now it returns the top-left of the image inside window
         ImGui::Render();
         
-        BindFramebuffer();
+  
 
         // --- Picking ---
         SDL_GetWindowSize(win,&ScreenWidth,&ScreenHeight);
-        
-        float localX = mx - imgPos.x;
-        float localY = my - imgPos.y;
 
-        bool insideImage = (localX >= 0 && localX <= EditorWindowWidth &&
-                            localY >= 0 && localY <= EditorWindowHeight);
+        // BindFramebuffer();
+        editorFramebuffer.BindFramebuffer();
         
+        glm::vec2 localPos(mx - imgPos.x, my - imgPos.y);
+        bool insideImage = (localPos.x >= 0 && localPos.x <= EditorWindowWidth &&
+            localPos.y >= 0 && localPos.y <= EditorWindowHeight);
+
+        
+
         glm::mat4 View = cam.view(terrainMap);
-        // glm::mat4 Projection = cam.proj(ScreenWidth/(float)ScreenHeight);
         glm::mat4 Projection = cam.proj(EditorWindowWidth/(float)EditorWindowHeight);
         glm::mat4 VP = Projection*View; 
         glm::mat4 invVP = glm::inverse(VP);
@@ -110,13 +112,16 @@ void Engine::Start()
 
         if(insideImage && editMode){
 
-            float xN = (2.0f * localX / EditorWindowWidth - 1.0f);
-            float yN = (1.0f - 2.0f * localY / EditorWindowHeight);
-            glm::vec4 p0 = invVP * glm::vec4(xN,yN,-1,1); p0/=p0.w;
-            glm::vec4 p1 = invVP * glm::vec4(xN,yN, 1,1); p1/=p1.w;
+            float xN = (2.0f * localPos.x / EditorWindowWidth - 1.0f);
+            float yN = (1.0f - 2.0f * localPos.y / EditorWindowHeight);
+            glm::vec4 p0 = invVP * glm::vec4(xN,yN,-1,1);
+            glm::vec4 p1 = invVP * glm::vec4(xN,yN, 1,1);
+            p1/=p1.w;
+            p0/=p0.w;
+
             glm::vec3 ro = glm::vec3(p0); glm::vec3 rd = glm::normalize(glm::vec3(p1-p0));
  
-            hasHit = false;
+            // hasHit = false;
             float closestT = 1e9f;
             for (auto& chunk : terrainMap->GetChunks()) 
             {
@@ -134,9 +139,8 @@ void Engine::Start()
                 }
             }
 
-            // --- Brush apply ---
-            if(hasHit){
-                if (lmb) { terrainMap->applyBrush(brush, hit, shift); }
+            if(hasHit && (lmb)){
+                terrainMap->applyBrush(brush, hit, shift); 
             }
         }
         
@@ -173,10 +177,9 @@ void Engine::Start()
         }
 
         // --- Render Skybox ---
-        RenderSkyBox(SkyboxShader,Projection, View);
+        skyBox.Render(SkyboxShader,Projection, View);
 
-
-        UnbindFramebuffer();
+        editorFramebuffer.UnbindFramebuffer();
 
         // --- Render GUI ---
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -200,21 +203,6 @@ void Engine::GenCircleGL()
     glBindVertexArray(ringVAO); glBindBuffer(GL_ARRAY_BUFFER, ringVBO);
     glBufferData(GL_ARRAY_BUFFER, ringVerts.size()*sizeof(glm::vec3), ringVerts.data(), GL_STATIC_DRAW);
     glEnableVertexAttribArray(0); glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,(void*)0); glBindVertexArray(0);
-}
-
-
-void Engine::RenderSkyBox(Shader &shader, const glm::mat4& projection, const glm::mat4& view)
-{
-    glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
-    
-    shader.use();
-    shader.setMat4("projection", projection);
-    shader.setMat4("view", glm::mat4(glm::mat3(view)));
-
-    glBindVertexArray(skyBox.VAO);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, skyBox.cubemapTexture);
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    glBindVertexArray(0);
 }
 
 void Engine::RenderEditRing(glm::vec3 hit, glm::mat4 VP)
@@ -267,7 +255,6 @@ void Engine::RenderEditRing(glm::vec3 hit, glm::mat4 VP)
 
 void Engine::HandleInput(float dt)
 {
-    // int mx=0,my=0;
     SDL_GetMouseState(&mx,&my);
     SDL_Event e; 
     while(SDL_PollEvent(&e))
@@ -322,55 +309,6 @@ void Engine::HandleInput(float dt)
     player.HandleInput(dt,cam.forward,cam.right, rmb, lmb);
 }
 
-void Engine::CreateFrameBuffer()
-{
-    glGenFramebuffers(1, &FBO);
-    glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-
-	glGenTextures(1, &texture_id);
-	glBindTexture(GL_TEXTURE_2D, texture_id);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, ScreenWidth, ScreenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_id, 0);
-
-	glGenRenderbuffers(1, &RBO);
-	glBindRenderbuffer(GL_RENDERBUFFER, RBO);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, ScreenWidth, ScreenHeight);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
-
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!\n";
-
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glBindTexture(GL_TEXTURE_2D, 0);
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-}
-
-void Engine::RescaleFramebuffer(float width, float height)
-{
-	glBindTexture(GL_TEXTURE_2D, texture_id);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture_id, 0);
-
-	glBindRenderbuffer(GL_RENDERBUFFER, RBO);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
-}
-
-void Engine::BindFramebuffer()
-{
-	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-}
-
-// here we unbind our framebuffer
-void Engine::UnbindFramebuffer()
-{
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
 ImVec2 Engine::RenderGUI()
 {
     ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
@@ -386,7 +324,7 @@ ImVec2 Engine::RenderGUI()
     EditorWindowHeight = ImGui::GetContentRegionAvail().y;
 
     // rescale framebuffer
-    RescaleFramebuffer(EditorWindowWidth, EditorWindowHeight);
+    editorFramebuffer.RescaleFramebuffer(EditorWindowWidth, EditorWindowHeight);
     glViewport(0, 0, EditorWindowWidth, EditorWindowHeight);
 
     // get correct image position **inside the window**
@@ -394,7 +332,7 @@ ImVec2 Engine::RenderGUI()
 
     // add image
     ImGui::GetWindowDrawList()->AddImage(
-        (ImTextureID)(intptr_t)texture_id,
+        (ImTextureID)(intptr_t)editorFramebuffer.GetTextureID(),
         imgPos,
         ImVec2(imgPos.x + EditorWindowWidth, imgPos.y + EditorWindowHeight),
         ImVec2(0,1),

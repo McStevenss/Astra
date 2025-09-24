@@ -82,6 +82,20 @@ void SkyBox::Init()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 }
 
+void SkyBox::Render(Shader& shader, const glm::mat4& projection, const glm::mat4& view)
+{
+    glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+    
+    shader.use();
+    shader.setMat4("projection", projection);
+    shader.setMat4("view", glm::mat4(glm::mat3(view)));
+
+    glBindVertexArray(VAO);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glBindVertexArray(0);
+}
+
 unsigned int SkyBox::loadCubemap(std::vector<std::string> faces)
 {
     stbi_set_flip_vertically_on_load(false);

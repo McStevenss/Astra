@@ -28,6 +28,7 @@
 #include "Model.hpp"
 #include "Mesh.hpp"
 #include "Skybox.h"
+#include "EditorFramebuffer.h"
 
 class Engine {
 
@@ -45,18 +46,18 @@ class Engine {
         void buildCircle(std::vector<glm::vec3>& out, float radius, int segments=64);
         void GenCircleGL();
         void HandleInput(float dt);
-        void CreateFrameBuffer();
-        void RescaleFramebuffer(float width, float height);
-        void BindFramebuffer();
-        void UnbindFramebuffer();
+        // void CreateFrameBuffer();
+        // void RescaleFramebuffer(float width, float height);
+        // void BindFramebuffer();
+        // void UnbindFramebuffer();
         float GetDeltaTime();
-        void RenderSkyBox(Shader &shader, const glm::mat4& projection, const glm::mat4& view);
         void RenderEditRing(glm::vec3 hit, glm::mat4 VP);
         ImVec2 RenderGUI();
         Shader* heightMapShader;
         Shader* heightMapColorShader;
         // TerrainChunk* terrainChunk;
         TerrainMap* terrainMap;
+        EditorFramebuffer editorFramebuffer;
         Brush brush;
 
         int ScreenWidth=1920;
