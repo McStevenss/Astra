@@ -29,6 +29,7 @@
 #include "Mesh.hpp"
 #include "Skybox.h"
 #include "EditorFramebuffer.h"
+#include "Sphere.h"
 
 class Engine {
 
@@ -45,7 +46,7 @@ class Engine {
         SkyBox skyBox;
         void buildCircle(std::vector<glm::vec3>& out, float radius, int segments=64);
         void GenCircleGL();
-        void HandleInput(float dt);
+        void HandleInput(float dt, bool insideImage);
         // void CreateFrameBuffer();
         // void RescaleFramebuffer(float width, float height);
         // void BindFramebuffer();
@@ -89,6 +90,9 @@ class Engine {
         bool projectCircle=true;
         float EditorWindowWidth;
         float EditorWindowHeight;
+
+        float metallic = 1.0f;
+        float roughness = 0.25f;
 
         int mx=0,my=0;
         // ------------ Config ------------

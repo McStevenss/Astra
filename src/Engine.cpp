@@ -72,8 +72,12 @@ void Engine::Start()
 
     Shader PlayerShader("shaders/model.vs","shaders/model.fs");
     Shader SkyboxShader("shaders/skybox.vs","shaders/skybox.fs");
+    Shader PBRShader("shaders/pbr_nt.vs","shaders/pbr_nt.fs");
 
     // Model testModel("models/Test_pillar/TestPillar.dae",false,false);
+
+    Sphere test_sphere;
+    glm::vec3 sphere_pos(275.0f,15.0f,130.2f);
 
     while(running)
     {
@@ -147,7 +151,7 @@ void Engine::Start()
         // --- Render ---
         glClearColor(0.52f,0.75f,0.95f,1);
         glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-        HandleInput(dt);
+        HandleInput(dt, insideImage);
         cam.Update(dt);
 
         // --- Render Player ---
@@ -158,15 +162,40 @@ void Engine::Start()
         PlayerShader.setVec3("lightDir",lightDir);
         player.Render(PlayerShader, cam);
         player.DrawPosCircle(VP);
+        
+        
+        glm::mat4 model = glm::mat4(1.0f);
+        model = glm::translate(model, sphere_pos);
+        PBRShader.use();
+        PBRShader.setVec3("albedo", 0.5f, 0.0f, 0.0f);
+        PBRShader.setFloat("ao", 1.0f);
+        PBRShader.setMat4("view",View);
+        PBRShader.setMat4("projection",Projection);
+        PBRShader.setVec3("camPos",cam.positionWithCollision(terrainMap));
+        PBRShader.setFloat("metallic", metallic);
+        PBRShader.setFloat("roughness", roughness);
+        PBRShader.setMat4("model", model);
+        PBRShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));      
+        
+        
+        for (unsigned int i = 0; i < 4; ++i)
+        {
+            PBRShader.setVec3("lightPositions[" + std::to_string(i) + "]", glm::vec3(266.0f,29.0f,128.0f));
+            PBRShader.setVec3("lightColors[" + std::to_string(i) + "]", glm::vec3(300.0f, 300.0f, 300.0f));
+        }
+
+        test_sphere.Render();
 
 
-        // --- Render Terrain ---
+
+
+
+          // --- Render Terrain ---
         heightMapShader->use();
         heightMapShader->setBool("uFlatShading", flatshade);
         heightMapShader->setBool("uShowSlopes", showSlopes);
         heightMapShader->setVec3("uCamPos", cam.positionWithCollision(terrainMap));
         heightMapShader->setVec3("uLightDir", lightDir);
-                
         terrainMap->render(*heightMapShader, Projection, View, wire);
 
         // Draw brush ring at hit position
@@ -221,8 +250,7 @@ void Engine::RenderEditRing(glm::vec3 hit, glm::mat4 VP)
                 v.y = tempChunk->getHeightAt(local.x, local.z) + tempChunk->circleOffset;
             } else {
                 v.y = 0.0f;
-            }
-            
+            } 
             // update vertex to world-space XZ
             v.x = worldX;
             v.z = worldZ;
@@ -251,7 +279,7 @@ void Engine::RenderEditRing(glm::vec3 hit, glm::mat4 VP)
     glBindVertexArray(0);
 }
 
-void Engine::HandleInput(float dt)
+void Engine::HandleInput(float dt, bool insideImage)
 {
     SDL_GetMouseState(&mx,&my);
     SDL_Event e; 
@@ -299,7 +327,7 @@ void Engine::HandleInput(float dt)
         if(e.type==SDL_KEYUP){ if(e.key.keysym.sym==SDLK_LSHIFT || e.key.keysym.sym==SDLK_RSHIFT) shift=false; }
         if(e.type==SDL_KEYUP){ if(e.key.keysym.sym==SDLK_LCTRL) brush.Falloff=true; }
 
-        if(!editMode){
+        if(!editMode && insideImage){
             cam.HandleInput(e,mx,my);
         }
     }
@@ -361,7 +389,10 @@ ImVec2 Engine::RenderGUI()
     ImGui::Text("Yaw: %.1f", cam.yaw);
     ImGui::Text("Pitch: %.1f", cam.pitch);
     ImGui::Text("Distance: %.1f", cam.distance);
-
+    //--------------------------------------------------------------------
+    ImGui::SeparatorText("PBR Settings");
+    ImGui::SliderFloat("Metallic", &metallic, 0.0f, 1.0f);
+    ImGui::SliderFloat("Roughness", &roughness, 0.0f, 1.0f);
     //--------------------------------------------------------------------
     ImGui::SeparatorText("Brush Settings");
     ImGui::SliderFloat("Brush Radius", &brush.radius, 0.1f, 100.0f);
