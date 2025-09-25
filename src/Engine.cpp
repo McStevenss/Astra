@@ -15,9 +15,7 @@ Engine::Engine()
 
     terrainMap = new TerrainMap(2,2,GRID_SIZE, CELL_SIZE);
     terrainMap->build();
-    
-    
-    // GenCircleGL();
+        
     mapCircle.Init(brush.radius,64);
     editorFramebuffer.Init(ScreenWidth, ScreenHeight);
     skyBox.Init();

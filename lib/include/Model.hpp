@@ -64,9 +64,9 @@ public:
     Model(string const &path, bool gamma = false, bool flipUVs = false) : gammaCorrection(gamma)
     {
         loadModel(path,flipUVs);
-        std::cout << "Model has diffuse:" << hasDiffuse << std::endl;
-        std::cout << "Model has normal:" << hasNormal << std::endl;
-        std::cout << "Model has specular:" << hasSpecular << std::endl;
+        std::cout << "[Model] has diffuse:" << hasDiffuse << std::endl;
+        std::cout << "[Model] has normal:" << hasNormal << std::endl;
+        std::cout << "[Model] has specular:" << hasSpecular << std::endl;
     }
 
     ~Model()

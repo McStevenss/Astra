@@ -74,9 +74,7 @@ Sphere::Sphere()
     glEnableVertexAttribArray(1);        
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(6 * sizeof(float)));        
-    
-    std::cout << "Sphere done" << std::endl;
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(6 * sizeof(float)));            
 }
 
 void Sphere::Render(){

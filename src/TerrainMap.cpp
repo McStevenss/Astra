@@ -168,7 +168,7 @@ void TerrainMap::save(const std::string& folderPath) {
     // Create the folder if it doesn't exist
     if (!fs::exists(folderPath)) {
         if (!fs::create_directories(folderPath)) {
-            std::cerr << "Failed to create folder: " << folderPath << std::endl;
+            std::cerr << "[TerrainMap] Failed to create folder: " << folderPath << std::endl;
         }
     }
 
@@ -178,12 +178,12 @@ void TerrainMap::save(const std::string& folderPath) {
         filename << folderPath << "/chunk_" << chunk->gridX << "_" << chunk->gridZ << ".hmap";
 
         if (!chunk->saveHMap(filename.str())) {
-            std::cerr << "Failed to save chunk at (" << chunk->gridX 
+            std::cerr << "[TerrainMap] Failed to save chunk at (" << chunk->gridX 
                       << ", " << chunk->gridZ << ")" << std::endl;
         }
     }
 
-    std::cout << "TerrainMap saved successfully to " << folderPath << std::endl;
+    std::cout << "[TerrainMap] saved successfully to " << folderPath << std::endl;
 }
 
 void TerrainMap::load(const std::string& folderPath) {
@@ -205,7 +205,7 @@ void TerrainMap::load(const std::string& folderPath) {
         // TerrainChunk chunk(chunkSize, cellSize);
         auto chunk = std::make_unique<TerrainChunk>(chunkSize, cellSize);
         if (!chunk->loadHMap(entry.path().string())) {
-            std::cerr << "Failed to load chunk: " << entry.path() << std::endl;
+            std::cerr << "[TerrainMap][Chunk] Failed to load chunk: " << entry.path() << std::endl;
             numErrors++;
         }
 
@@ -223,12 +223,12 @@ void TerrainMap::load(const std::string& folderPath) {
     }
 
     if(numErrors > 0){
-        std::cout << "TerrainMap failed to load " << numErrors << " chunks from: " << folderPath << std::endl;
+        std::cout << "[TerrainMap] failed to load " << numErrors << " chunks from: " << folderPath << std::endl;
     }
     else {
         build();
         updateDirtyChunks();
-        std::cout << "TerrainMap loaded successfully from " << folderPath << std::endl;
+        std::cout << "[TerrainMap] loaded successfully from " << folderPath << std::endl;
     }
 }
 float TerrainMap::getCellSize()
