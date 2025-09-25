@@ -11,13 +11,14 @@ Engine::Engine()
     cam.SetFocusPosition(&player.mPosition);
 
     heightMapShader = new Shader("shaders/hmap.vs","shaders/hmap.fs", "shaders/hmap.g");
-    heightMapColorShader = new Shader("shaders/hmap_color.vs","shaders/hmap_color.fs");
+    heightMapColorShader = new Shader("shaders/circle.vs","shaders/circle.fs");
 
     terrainMap = new TerrainMap(2,2,GRID_SIZE, CELL_SIZE);
     terrainMap->build();
     
     
-    GenCircleGL();
+    // GenCircleGL();
+    mapCircle.Init(brush.radius,64);
     editorFramebuffer.Init(ScreenWidth, ScreenHeight);
     skyBox.Init();
 
@@ -160,10 +161,10 @@ void Engine::Start()
         PlayerShader.setMat4("view",View);
         PlayerShader.setMat4("projection",Projection);
         PlayerShader.setVec3("lightDir",lightDir);
-        player.Render(PlayerShader, cam);
-        player.DrawPosCircle(VP);
+        player.Render(PlayerShader, cam, VP);
+        // player.DrawPosCircle(VP);
         
-        
+        // --- Render Test PBR Sphere ---
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, sphere_pos);
         PBRShader.use();
@@ -176,21 +177,15 @@ void Engine::Start()
         PBRShader.setFloat("roughness", roughness);
         PBRShader.setMat4("model", model);
         PBRShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));      
-        
-        
         for (unsigned int i = 0; i < 4; ++i)
         {
-            PBRShader.setVec3("lightPositions[" + std::to_string(i) + "]", glm::vec3(266.0f,29.0f,128.0f));
+            PBRShader.setVec3("lightPositions[" + std::to_string(i) + "]", glm::vec3(266.0f-(i*5),29.0f,128.0f-(i*5)));
             PBRShader.setVec3("lightColors[" + std::to_string(i) + "]", glm::vec3(300.0f, 300.0f, 300.0f));
         }
 
         test_sphere.Render();
 
-
-
-
-
-          // --- Render Terrain ---
+        // --- Render Terrain ---
         heightMapShader->use();
         heightMapShader->setBool("uFlatShading", flatshade);
         heightMapShader->setBool("uShowSlopes", showSlopes);
@@ -200,7 +195,7 @@ void Engine::Start()
 
         // Draw brush ring at hit position
         if(hasHit && editMode){
-            RenderEditRing(hit, VP);
+            mapCircle.RenderProjectedCircle(*heightMapColorShader,hit,VP,brush.radius,*terrainMap);
         }
 
         // --- Render Skybox ---
@@ -214,69 +209,6 @@ void Engine::Start()
         SDL_GL_SwapWindow(win);
     }
 
-}
-
-void Engine::buildCircle(std::vector<glm::vec3>& out, float radius, int segments){
-    out.clear(); out.reserve(segments);
-    for(int i=0;i<segments;++i){
-        float a = (i/(float)segments)*6.2831853f;
-        out.emplace_back(radius*cosf(a), 0.0f, radius*sinf(a));
-    }
-}
-
-void Engine::GenCircleGL()
-{
-    glGenVertexArrays(1, &ringVAO); glGenBuffers(1, &ringVBO);
-    glBindVertexArray(ringVAO); glBindBuffer(GL_ARRAY_BUFFER, ringVBO);
-    glBufferData(GL_ARRAY_BUFFER, ringVerts.size()*sizeof(glm::vec3), ringVerts.data(), GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0); glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,(void*)0); glBindVertexArray(0);
-}
-
-void Engine::RenderEditRing(glm::vec3 hit, glm::mat4 VP)
-{
-    std::vector<glm::vec3> ring; buildCircle(ring, brush.radius, 96);
-            
-    glm::mat4 Mring = glm::mat4(1.0f); // identity
-
-    if(projectCircle){
-
-        for(auto& v : ring)
-        {                    
-            float worldX = v.x + hit.x;
-            float worldZ = v.z + hit.z;
-            TerrainChunk* tempChunk = terrainMap->getChunkAt(glm::vec3(worldX,0.0f,worldZ));
-            if (tempChunk) {
-                glm::vec3 local = glm::vec3(worldX, 0.0f, worldZ) - tempChunk->position;
-                v.y = tempChunk->getHeightAt(local.x, local.z) + tempChunk->circleOffset;
-            } else {
-                v.y = 0.0f;
-            } 
-            // update vertex to world-space XZ
-            v.x = worldX;
-            v.z = worldZ;
-        }                
-    }
-    else
-    {
-        for(auto& v : ring){ v.y = 0.0f; }
-        Mring = glm::translate(glm::mat4(1.0f), glm::vec3(hit.x, hit.y + 0.05f, hit.z));
-    }
-
-    glBindBuffer(GL_ARRAY_BUFFER, ringVBO);
-    glBufferData(GL_ARRAY_BUFFER, ring.size()*sizeof(glm::vec3), ring.data(), GL_DYNAMIC_DRAW);
-
-
-    // glm::mat4 VP = P*V; 
-
-    heightMapColorShader->use();
-    heightMapColorShader->setMat4("uVP", VP);
-    heightMapColorShader->setMat4("uM", Mring);
-    heightMapColorShader->setVec4("uColor", glm::vec4(0.0f,0.0f,0.0f,1.0f));
-    
-
-    glBindVertexArray(ringVAO);
-    glDrawArrays(GL_LINE_LOOP, 0, (GLint)ring.size());
-    glBindVertexArray(0);
 }
 
 void Engine::HandleInput(float dt, bool insideImage)

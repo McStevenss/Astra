@@ -30,6 +30,7 @@
 #include "Skybox.h"
 #include "EditorFramebuffer.h"
 #include "Sphere.h"
+#include "MapCircle.h"
 
 class Engine {
 
@@ -44,15 +45,13 @@ class Engine {
         Camera cam;
         Player player;
         SkyBox skyBox;
-        void buildCircle(std::vector<glm::vec3>& out, float radius, int segments=64);
-        void GenCircleGL();
+        MapCircle mapCircle;
+        // void buildCircle(std::vector<glm::vec3>& out, float radius, int segments=64);
+        // void GenCircleGL();
+        // void RenderEditRing(glm::vec3 hit, glm::mat4 VP);
+
         void HandleInput(float dt, bool insideImage);
-        // void CreateFrameBuffer();
-        // void RescaleFramebuffer(float width, float height);
-        // void BindFramebuffer();
-        // void UnbindFramebuffer();
         float GetDeltaTime();
-        void RenderEditRing(glm::vec3 hit, glm::mat4 VP);
         ImVec2 RenderGUI();
         Shader* heightMapShader;
         Shader* heightMapColorShader;
@@ -66,9 +65,9 @@ class Engine {
         SDL_Window* win;
         SDL_GLContext glctx;
 
-        GLuint ringVBO=0;
-        GLuint ringVAO=0;
-        std::vector<glm::vec3> ringVerts;
+        // GLuint ringVBO=0;
+        // GLuint ringVAO=0;
+        // std::vector<glm::vec3> ringVerts;
         
                 
         glm::vec3 playerPos;

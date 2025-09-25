@@ -9,6 +9,7 @@
 #include "Model.hpp"
 #include "Animation.h"
 #include "Camera.hpp"
+#include "MapCircle.h"
 
 
 enum class AnimationState {
@@ -33,11 +34,9 @@ namespace std {
 class Player
 {
     public:
-        // Player(glm::vec3 position, glm::vec3 scale = glm::vec3(1.0f));
         Player(glm::vec3 position, glm::vec3 scale = glm::vec3(1.0f), string const &modelPath = "models/vampire_base/Vampire A Lusth.dae");
         Player(){mPosition = glm::vec3(1.0f);};
-        // void Render(Shader &shader, float yaw);
-        void Render(Shader &shader, Camera &camera);
+        void Render(Shader &shader, Camera &camera, glm::mat4 VP);
         void Update(float deltaTime, TerrainMap& terrainMap);
         void HandleInput(float dt, const glm::vec3& fwd, const glm::vec3& right, bool rmb, bool lmb);
         void LoadAnimations();
@@ -51,9 +50,6 @@ class Player
         bool isSliding = false;
 
     private:
-
-        void buildCircle(std::vector<glm::vec3>& out, float radius, int segments);
-        void GenCircleGL();
         Shader* circleShader;
 
         float gravityConstant =-19.81f;
@@ -61,18 +57,15 @@ class Player
         float jumpStrength = 8.0f;
         float currentTerrainHeight = 0.0f;
 
-        float vertices[216]; 
+        // float vertices[216]; 
         unsigned int VBO=0; 
         unsigned int VAO=0;
         unsigned int EBO=0;
         float rotationOffset = 90.0;
         Animator* animator;
         Model* meshModel;
-
-        GLuint ringVBO=0;
-        GLuint ringVAO=0;
-        std::vector<glm::vec3> ringVerts;
-
+        MapCircle mapCircle;
+    
         // --- Default animation is Idle ---
         AnimationState currentAnimationState = AnimationState::Idle;
         std::unordered_map<AnimationState, Animation> animations;

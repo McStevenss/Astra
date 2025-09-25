@@ -10,10 +10,10 @@ Player::Player(glm::vec3 position, glm::vec3 scale, string const &modelPath)
 
     LoadAnimations();
     animator = new Animator(&animations[currentAnimationState]);
-
     circleShader = new Shader("shaders/circle.vs","shaders/circle.fs");
 
-    GenCircleGL();
+    mapCircle.Init(0.5f,24);
+    // GenCircleGL();
 }
 
 void Player::LoadAnimations()
@@ -28,7 +28,7 @@ void Player::LoadAnimations()
     animations.emplace(AnimationState::Falling,    Animation("models/animations/Falling Idle.dae", meshModel));
 }
 
-void Player::Render(Shader &shader, Camera &camera)
+void Player::Render(Shader &shader, Camera &camera, glm::mat4 VP)
 {
     auto transforms = animator->GetFinalBoneMatrices();
     for (int i = 0; i < transforms.size(); ++i)
@@ -40,16 +40,16 @@ void Player::Render(Shader &shader, Camera &camera)
     shader.setVec3("viewPos",camera.position());
     meshModel->Draw(shader);
 
+    glm::vec3 circlePos(mPosition.x,currentTerrainHeight,mPosition.z);
+    mapCircle.Render(*circleShader, VP, circlePos);
 }
 
 void Player::HandleInput(float dt, const glm::vec3& fwd, const glm::vec3& right, bool rmb, bool lmb)
 {
     const Uint8* ks = SDL_GetKeyboardState(nullptr);
     float targetSpeed = (ks[SDL_SCANCODE_LCTRL] ? 25.0f : 5.0f);
-
     glm::vec3 moveDir(0.0f);
   
-        
     // --- Ground movement only if grounded and not sliding ---
     if (isGrounded && !isSliding)
     {
@@ -178,45 +178,3 @@ void Player::Update(float deltaTime, TerrainMap& terrainMap)
         animator->UpdateAnimation(deltaTime);
         
 }
-
-void Player::GenCircleGL()
-{
-    glGenVertexArrays(1, &ringVAO); glGenBuffers(1, &ringVBO);
-    glBindVertexArray(ringVAO); glBindBuffer(GL_ARRAY_BUFFER, ringVBO);
-    glBufferData(GL_ARRAY_BUFFER, ringVerts.size()*sizeof(glm::vec3), ringVerts.data(), GL_STATIC_DRAW);
-    glEnableVertexAttribArray(0); glVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,(void*)0); glBindVertexArray(0);
-
-}
-
-void Player::DrawPosCircle(glm::mat4 VP)
-{
-    std::vector<glm::vec3> ring; buildCircle(ring, 0.5f, 24);    
-    glm::mat4 Mring = glm::mat4(1.0f); // identity
-
-    for(auto& v : ring){ v.y = 0.0f; }
-    Mring = glm::translate(glm::mat4(1.0f), glm::vec3(mPosition.x, currentTerrainHeight + 0.05f, mPosition.z));
-  
-    glBindBuffer(GL_ARRAY_BUFFER, ringVBO);
-    glBufferData(GL_ARRAY_BUFFER, ring.size()*sizeof(glm::vec3), ring.data(), GL_DYNAMIC_DRAW);
-
-    circleShader->use();
-    circleShader->setMat4("uVP", VP);
-    circleShader->setMat4("uM", Mring);
-    circleShader->setVec4("uColor", glm::vec4(0.0f,0.0f,0.5f,1.0f));
-    
-    glBindVertexArray(ringVAO);
-    glDrawArrays(GL_LINE_LOOP, 0, (GLint)ring.size());
-    glBindVertexArray(0);
-}
-
-
-void Player::buildCircle(std::vector<glm::vec3>& out, float radius, int segments)
-{
-    out.clear(); out.reserve(segments);
-    for(int i=0;i<segments;++i){
-        float a = (i/(float)segments)*6.2831853f;
-        out.emplace_back(radius*cosf(a), 0.0f, radius*sinf(a));
-    }
-}
-
-    
