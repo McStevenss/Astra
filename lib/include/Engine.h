@@ -31,6 +31,7 @@
 #include "EditorFramebuffer.h"
 #include "Sphere.h"
 #include "MapCircle.h"
+#include "HDRIBox.h"
 
 class Engine {
 
@@ -45,6 +46,7 @@ class Engine {
         Camera cam;
         Player player;
         SkyBox skyBox;
+        HDRIBox hdriBox;
         MapCircle mapCircle;
         // void buildCircle(std::vector<glm::vec3>& out, float radius, int segments=64);
         // void GenCircleGL();
@@ -89,8 +91,10 @@ class Engine {
         bool projectCircle=true;
         float EditorWindowWidth;
         float EditorWindowHeight;
+        bool useIrradiance = true;
+        bool showIrradianceMap = false;
 
-        float metallic = 1.0f;
+        float metallic = 0.25f;
         float roughness = 0.25f;
 
         int mx=0,my=0;
@@ -102,6 +106,8 @@ class Engine {
         GLuint FBO = 0;
         GLuint texture_id = 0;
         GLuint RBO = 0;
+        
+        GLuint hdrTexture = 0;
 
 };
 

@@ -150,16 +150,11 @@ glm::vec3 TerrainMap::getNormalGlobal(float x, float z) {
 
 glm::vec3 TerrainMap::getDownhillAccelFromNormal(const glm::vec3& normal, float gravityConstant) {
     glm::vec3 gravity = glm::vec3(0.0f, gravityConstant, 0.0f);
-
-    // Project gravity onto terrain tangent plane
     glm::vec3 tangent = gravity - glm::dot(gravity, normal) * normal;
 
     if (tangent.y > 0.0f) tangent = -tangent;
-    // tangent = glm::normalize(tangent);
 
-    // return tangent; // already scaled by gravityConstant
-    return tangent;
-    
+    return tangent;    
 }
 
 void TerrainMap::save(const std::string& folderPath) {
@@ -201,8 +196,6 @@ void TerrainMap::load(const std::string& folderPath) {
     for (auto& entry : fs::directory_iterator(folderPath)) {
         if (entry.path().extension() != ".hmap") continue;
 
-        // auto chunk = std::make_unique<TerrainChunk>(chunkSize, cellSize);
-        // TerrainChunk chunk(chunkSize, cellSize);
         auto chunk = std::make_unique<TerrainChunk>(chunkSize, cellSize);
         if (!chunk->loadHMap(entry.path().string())) {
             std::cerr << "[TerrainMap][Chunk] Failed to load chunk: " << entry.path() << std::endl;

@@ -18,7 +18,8 @@ Engine::Engine()
         
     mapCircle.Init(brush.radius,64);
     editorFramebuffer.Init(ScreenWidth, ScreenHeight);
-    skyBox.Init();
+    // skyBox.Init();
+    hdriBox.Init(ScreenWidth, ScreenHeight);
 
     terrainMap->load("saved");
 }
@@ -67,30 +68,35 @@ float Engine::GetDeltaTime()
 
 void Engine::Start()
 {
+    // glViewport(0, 0, ScreenWidth, ScreenHeight);
     uint32_t prevTicks = SDL_GetTicks();
 
     Shader PlayerShader("shaders/model.vs","shaders/model.fs");
     Shader SkyboxShader("shaders/skybox.vs","shaders/skybox.fs");
     Shader PBRShader("shaders/pbr_nt.vs","shaders/pbr_nt.fs");
 
-    // Model testModel("models/Test_pillar/TestPillar.dae",false,false);
+    PBRShader.use();
+    PBRShader.setInt("irradianceMap", 0);
+    PBRShader.setVec3("albedo", 0.5f, 0.0f, 0.0f);
+    PBRShader.setFloat("ao", 1.0f);
+
+
+
 
     Sphere test_sphere;
     glm::vec3 sphere_pos(275.0f,15.0f,130.2f);
+
 
     while(running)
     {
         float dt = GetDeltaTime();
         
-
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
         ImVec2 imgPos = RenderGUI(); // now it returns the top-left of the image inside window
         ImGui::Render();
         
-  
-
         // --- Picking ---
         SDL_GetWindowSize(win,&ScreenWidth,&ScreenHeight);
 
@@ -98,10 +104,7 @@ void Engine::Start()
         editorFramebuffer.BindFramebuffer();
         
         glm::vec2 localPos(mx - imgPos.x, my - imgPos.y);
-        bool insideImage = (localPos.x >= 0 && localPos.x <= EditorWindowWidth &&
-            localPos.y >= 0 && localPos.y <= EditorWindowHeight);
-
-        
+        bool insideImage = (localPos.x >= 0 && localPos.x <= EditorWindowWidth && localPos.y >= 0 && localPos.y <= EditorWindowHeight);
 
         glm::mat4 View = cam.view(terrainMap);
         glm::mat4 Projection = cam.proj(EditorWindowWidth/(float)EditorWindowHeight);
@@ -109,7 +112,6 @@ void Engine::Start()
         bool hasHit = false;
         glm::vec3 hit;
         
-
         if(insideImage && editMode){
             
             glm::mat4 invVP = glm::inverse(VP);
@@ -121,8 +123,6 @@ void Engine::Start()
             p0/=p0.w;
 
             glm::vec3 ro = glm::vec3(p0); glm::vec3 rd = glm::normalize(glm::vec3(p1-p0));
- 
-            // hasHit = false;
             float closestT = 1e9f;
             for (auto& chunk : terrainMap->GetChunks()) 
             {
@@ -145,7 +145,6 @@ void Engine::Start()
             }
         }
         
-     
         terrainMap->updateDirtyChunks();
         // --- Render ---
         glClearColor(0.52f,0.75f,0.95f,1);
@@ -160,27 +159,30 @@ void Engine::Start()
         PlayerShader.setMat4("projection",Projection);
         PlayerShader.setVec3("lightDir",lightDir);
         player.Render(PlayerShader, cam, VP);
-        // player.DrawPosCircle(VP);
         
         // --- Render Test PBR Sphere ---
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::translate(model, sphere_pos);
+
+        
         PBRShader.use();
-        PBRShader.setVec3("albedo", 0.5f, 0.0f, 0.0f);
-        PBRShader.setFloat("ao", 1.0f);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, hdriBox.irradianceMap);
+
         PBRShader.setMat4("view",View);
         PBRShader.setMat4("projection",Projection);
         PBRShader.setVec3("camPos",cam.positionWithCollision(terrainMap));
         PBRShader.setFloat("metallic", metallic);
         PBRShader.setFloat("roughness", roughness);
         PBRShader.setMat4("model", model);
+        PBRShader.setBool("useIrradiance",useIrradiance);
         PBRShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));      
         for (unsigned int i = 0; i < 4; ++i)
         {
             PBRShader.setVec3("lightPositions[" + std::to_string(i) + "]", glm::vec3(266.0f-(i*5),29.0f,128.0f-(i*5)));
             PBRShader.setVec3("lightColors[" + std::to_string(i) + "]", glm::vec3(300.0f, 300.0f, 300.0f));
         }
-
         test_sphere.Render();
 
         // --- Render Terrain ---
@@ -197,7 +199,9 @@ void Engine::Start()
         }
 
         // --- Render Skybox ---
-        skyBox.Render(SkyboxShader,Projection, View);
+        // skyBox.Render(SkyboxShader,Projection, View);
+        hdriBox.Render(View,Projection, showIrradianceMap);
+
 
         editorFramebuffer.UnbindFramebuffer();
 
@@ -321,8 +325,12 @@ ImVec2 Engine::RenderGUI()
     ImGui::Text("Distance: %.1f", cam.distance);
     //--------------------------------------------------------------------
     ImGui::SeparatorText("PBR Settings");
-    ImGui::SliderFloat("Metallic", &metallic, 0.0f, 1.0f);
-    ImGui::SliderFloat("Roughness", &roughness, 0.0f, 1.0f);
+    ImGui::SliderFloat("Metallic", &metallic, 0.05f, 1.0f);
+    ImGui::SliderFloat("Roughness", &roughness, 0.05f, 1.0f);
+    ImGui::Checkbox("Irradiance", &useIrradiance);
+    ImGui::Checkbox("Show Irradiance Map", &showIrradianceMap);
+
+    
     //--------------------------------------------------------------------
     ImGui::SeparatorText("Brush Settings");
     ImGui::SliderFloat("Brush Radius", &brush.radius, 0.1f, 100.0f);
