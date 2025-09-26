@@ -9,6 +9,7 @@
 #include "stb_image.h"
 #include "Shader.hpp"
 #include "Cube.h"
+#include "Quad.h"
 // #include <vector>
 
 class HDRIBox{
@@ -19,13 +20,18 @@ class HDRIBox{
 
         GLuint envCubemap;
         GLuint irradianceMap;
+        GLuint prefilterMap;
+        GLuint brdfLUTTexture;
         
         private:
         void LoadHDRITexture();
         void CreateFramebuffers();
         void RenderProjections();
         void CreateIrradianceMap();
-        // void CalculateIrradiance();
+        void CreatePrefilterMap();
+        void CreateLUTTexture();
+
+        void CalculatePrefilter();
         void CalculateIrradiance(float ScreenWidth, float ScreenHeight);
         
         glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
@@ -41,11 +47,15 @@ class HDRIBox{
         Shader* irradianceShader;
         Shader* backgroundShader;
         Shader* prefilterShader;
+        Shader* brdfShader;
 
         Cube* envBox;
+        Quad* envQuad;
         
-        int cubemapSize = 2048; //512
-        int irradianceSize = 64;
+        int cubemapSize = 512; //512
+        int irradianceSize = 32;
+        // int prefilterSize = 128;
+        int prefilterSize = 32;
         int HDRImageColorCap = 150;
 
         GLuint hdrTexture;  

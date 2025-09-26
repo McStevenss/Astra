@@ -2,15 +2,18 @@
 
 void HDRIBox::Init(float ScreenWidth, float ScreenHeight)
 {
-
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);  
     glEnable(GL_DEPTH_TEST);
 
 
     equirectangularToCubemapShader = new Shader("shaders/HDRI/cubemap.vs","shaders/HDRI/equirectangular.fs");
     irradianceShader = new Shader("shaders/HDRI/cubemap.vs","shaders/HDRI/irradiance_conv.fs");
     backgroundShader = new Shader("shaders/HDRI/background.vs","shaders/HDRI/background.fs");
+    prefilterShader = new Shader("shaders/HDRI/cubemap.vs","shaders/HDRI/prefilter.fs");
+    brdfShader = new Shader("shaders/HDRI/brdf.vs","shaders/HDRI/brdf.fs");
 
     envBox = new Cube();
+    envQuad = new Quad();
 
     std::cout << "[HDRIBox] Creating framebuffer/renderobjects" << std::endl;
     CreateFramebuffers();
@@ -21,7 +24,11 @@ void HDRIBox::Init(float ScreenWidth, float ScreenHeight)
     
     std::cout << "[HDRIBox] Creating Irradiance maps" << std::endl;
     CreateIrradianceMap();
+    CreateLUTTexture();
+    CreatePrefilterMap();
+
     CalculateIrradiance(ScreenWidth, ScreenHeight);
+    CalculatePrefilter();
 
 }
 
@@ -146,6 +153,85 @@ void HDRIBox::CreateIrradianceMap()
     glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
     glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, irradianceSize, irradianceSize);
+}
+
+void HDRIBox::CreatePrefilterMap()
+{
+    glGenTextures(1, &prefilterMap);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
+    for (unsigned int i = 0; i < 6; ++i)
+    {
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, prefilterSize, prefilterSize, 0, GL_RGB, GL_FLOAT, nullptr);
+    }
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // be sure to set minification filter to mip_linear 
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // generate mipmaps for the cubemap so OpenGL automatically allocates the required memory.
+    glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
+}
+
+void HDRIBox::CreateLUTTexture()
+{
+    glGenTextures(1, &brdfLUTTexture);
+    // pre-allocate enough memory for the LUT texture.
+    glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG16F, cubemapSize, cubemapSize, 0, GL_RG, GL_FLOAT, 0);
+    // be sure to set wrapping mode to GL_CLAMP_TO_EDGE
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    // then re-configure capture framebuffer object and render screen-space quad with BRDF shader.
+    glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, cubemapSize, cubemapSize);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, brdfLUTTexture, 0);
+
+    glViewport(0, 0, cubemapSize, cubemapSize);
+    brdfShader->use();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    envQuad->Render();
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+}
+
+void HDRIBox::CalculatePrefilter()
+{
+    glDepthFunc(GL_LEQUAL); 
+    prefilterShader->use();
+    prefilterShader->setInt("environmentMap", 0);
+    prefilterShader->setMat4("projection", captureProjection);
+    prefilterShader->setFloat("resolution", (float)cubemapSize);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+    unsigned int maxMipLevels = 5;
+    for (unsigned int mip = 0; mip < maxMipLevels; ++mip)
+    {
+        // reisze framebuffer according to mip-level size.
+        unsigned int mipWidth  = static_cast<unsigned int>(prefilterSize * std::pow(0.5, mip));
+        unsigned int mipHeight = static_cast<unsigned int>(prefilterSize * std::pow(0.5, mip));
+        glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+        glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
+        glViewport(0, 0, mipWidth, mipHeight);
+
+        float roughness = (float)mip / (float)(maxMipLevels - 1);
+        prefilterShader->setFloat("roughness", roughness);
+        for (unsigned int i = 0; i < 6; ++i)
+        {
+            prefilterShader->setMat4("view", captureViews[i]);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, prefilterMap, mip);
+
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            envBox->Render();
+        }
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void HDRIBox::CalculateIrradiance(float ScreenWidth, float ScreenHeight)

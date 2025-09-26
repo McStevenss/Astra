@@ -77,6 +77,8 @@ void Engine::Start()
 
     PBRShader.use();
     PBRShader.setInt("irradianceMap", 0);
+    PBRShader.setInt("prefilterMap", 1);
+    PBRShader.setInt("brdfLUT", 2);
     PBRShader.setVec3("albedo", 0.5f, 0.0f, 0.0f);
     PBRShader.setFloat("ao", 1.0f);
 
@@ -169,6 +171,10 @@ void Engine::Start()
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_CUBE_MAP, hdriBox.irradianceMap);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, hdriBox.prefilterMap);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, hdriBox.brdfLUTTexture);
 
         PBRShader.setMat4("view",View);
         PBRShader.setMat4("projection",Projection);
